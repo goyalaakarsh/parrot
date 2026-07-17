@@ -179,13 +179,14 @@ export default function App() {
   }
 
   return (
-    <div data-tauri-drag-region className="w-full h-full bg-background border border-border rounded-lg overflow-hidden flex flex-col p-3 select-none">
+    <div className="w-full h-full bg-background border border-border rounded-lg overflow-clip flex flex-col p-3 select-none">
       {toastMessage && (
         <Toast message={toastMessage} type={toastType} onClose={hideToast} />
       )}
 
       {view === 'list' && (
         <>
+          <div data-tauri-drag-region className="h-2 w-full shrink-0 -mx-3 -mt-3 mb-2 cursor-default" />
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
@@ -229,29 +230,38 @@ export default function App() {
       )}
 
       {view === 'add' && (
-        <AddEditPanel
-          prompt={null}
-          onSave={handleAddSave}
-          onCancel={() => setView('list')}
-        />
+        <>
+          <div data-tauri-drag-region className="h-2 w-full shrink-0 -mx-3 -mt-3 mb-2 cursor-default" />
+          <AddEditPanel
+            prompt={null}
+            onSave={handleAddSave}
+            onCancel={() => setView('list')}
+          />
+        </>
       )}
 
       {view === 'edit' && (
-        <AddEditPanel
-          prompt={editingPrompt}
-          onSave={handleEditSave}
-          onCancel={() => {
-            setEditingPrompt(null);
-            setView('list');
-          }}
-        />
+        <>
+          <div data-tauri-drag-region className="h-2 w-full shrink-0 -mx-3 -mt-3 mb-2 cursor-default" />
+          <AddEditPanel
+            prompt={editingPrompt}
+            onSave={handleEditSave}
+            onCancel={() => {
+              setEditingPrompt(null);
+              setView('list');
+            }}
+          />
+        </>
       )}
 
       {view === 'settings' && (
-        <SettingsPanel
-          onBack={() => setView('list')}
-          showToast={showToast}
-        />
+        <>
+          <div data-tauri-drag-region className="h-2 w-full shrink-0 -mx-3 -mt-3 mb-2 cursor-default" />
+          <SettingsPanel
+            onBack={() => setView('list')}
+            showToast={showToast}
+          />
+        </>
       )}
     </div>
   );

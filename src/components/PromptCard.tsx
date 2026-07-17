@@ -24,6 +24,13 @@ export function PromptCard({
   const [isDeleting, setIsDeleting] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const deleteRef = useRef<HTMLButtonElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isSelected && cardRef.current) {
+      cardRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [isSelected]);
 
   useEffect(() => {
     if (!isSelected) {
@@ -114,6 +121,7 @@ export function PromptCard({
 
   return (
     <div
+      ref={cardRef}
       role="option"
       aria-selected={isSelected}
       onClick={handleCardClick}

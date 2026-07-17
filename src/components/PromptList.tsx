@@ -50,7 +50,7 @@ export function PromptList({
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       {searchQuery && (
         <div className="flex items-center gap-1.5 px-1 mb-2 text-[10px] text-muted shrink-0">
           <Search size={10} aria-hidden="true" />
