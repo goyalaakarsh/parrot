@@ -58,6 +58,7 @@ pub fn run() {
             // Build System Tray (no native menu attached)
             let _tray = TrayIconBuilder::new()
                 .icon(tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png")).expect("Failed to load tray icon"))
+                .tooltip("Parrot")
                 .on_tray_icon_event(move |tray, event| {
                     tauri_plugin_positioner::on_tray_event(tray.app_handle(), &event);
                     if let tauri::tray::TrayIconEvent::Click { button_state: tauri::tray::MouseButtonState::Up, button, .. } = event {
