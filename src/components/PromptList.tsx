@@ -46,7 +46,7 @@ export function PromptList({
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Scrollable list of cards */}
-      <div className="flex-1 overflow-y-auto pr-0.5 space-y-1 mb-2">
+      <div className="flex-1 overflow-y-auto pr-1.5 space-y-1 mb-2">
         {prompts.map((prompt, idx) => (
           <PromptCard
             key={prompt.id}

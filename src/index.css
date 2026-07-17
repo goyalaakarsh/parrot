@@ -10,8 +10,8 @@
 
 /* Custom thin scrollbar styling */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -19,12 +19,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #252525;
+  background: #2a2a2a;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6ee7b7;
+  background: #10b981;
 }
 
 /* Animation utilities for our toast and transitions */

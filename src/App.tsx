@@ -107,6 +107,7 @@ export default function App() {
     onEnter: handleKeyboardEnter,
     onShiftEnter: handleKeyboardShiftEnter,
     onEscape: handleKeyboardEscape,
+    onCtrlN: () => setView('add'),
     isActive: view === 'list' && !loading,
   });
 

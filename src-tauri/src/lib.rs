@@ -87,13 +87,7 @@ pub fn run() {
                                         }
                                         
                                         let _ = window.show();
-                                        
-                                        // Only position on first show so the user can drag/relocate it afterwards
-                                        if !HAS_SHOWN_ONCE.load(std::sync::atomic::Ordering::Relaxed) {
-                                            let _ = window.move_window(Position::TrayCenter);
-                                            HAS_SHOWN_ONCE.store(true, std::sync::atomic::Ordering::Relaxed);
-                                        }
-                                        
+                                        crate::paste::position_window_at_caret_or_cursor(&window);
                                         let _ = window.set_focus();
                                         
                                         // Record last show time

@@ -3,7 +3,7 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 use std::str::FromStr;
 use crate::paste::get_current_foreground_hwnd;
 use crate::commands::LAST_FOREGROUND_HWND;
-use tauri_plugin_positioner::{WindowExt, Position};
+
 
 pub fn register_hotkey(app: &AppHandle, shortcut_str: &str) -> Result<(), String> {
     let shortcut_manager = app.global_shortcut();
@@ -41,11 +41,7 @@ pub fn handle_hotkey_trigger(app: &AppHandle) {
                 }
                 
                 let _ = window.show();
-                // Position and display the Tauri window
-                if !crate::HAS_SHOWN_ONCE.load(std::sync::atomic::Ordering::Relaxed) {
-                    let _ = window.move_window(Position::TrayCenter);
-                    crate::HAS_SHOWN_ONCE.store(true, std::sync::atomic::Ordering::Relaxed);
-                }
+                crate::paste::position_window_at_caret_or_cursor(&window);
                 let _ = window.set_focus();
                 
                 if let Ok(mut last_show) = crate::LAST_SHOW_TIME.lock() {

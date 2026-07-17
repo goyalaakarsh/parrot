@@ -1,5 +1,5 @@
 use tauri::{AppHandle, Manager, Emitter};
-use tauri_plugin_positioner::WindowExt;
+
 use crate::storage::{self, Prompt, Settings};
 use crate::paste::{get_current_foreground_hwnd, restore_focus_and_paste, is_valid_user_window};
 use crate::hook::{HOOK_STATE, deactivate_inline_search};
@@ -43,10 +43,7 @@ pub fn open_main_window(app: AppHandle, view: String) -> Result<(), String> {
         }
         
         let _ = main_win.show();
-        if !crate::HAS_SHOWN_ONCE.load(std::sync::atomic::Ordering::Relaxed) {
-            let _ = main_win.move_window(tauri_plugin_positioner::Position::TrayCenter);
-            crate::HAS_SHOWN_ONCE.store(true, std::sync::atomic::Ordering::Relaxed);
-        }
+        crate::paste::position_window_at_caret_or_cursor(&main_win);
         let _ = main_win.set_focus();
         
         if let Ok(mut last_show) = crate::LAST_SHOW_TIME.lock() {

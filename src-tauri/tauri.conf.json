@@ -15,7 +15,7 @@
         "label": "main",
         "title": "Parrot",
         "width": 380,
-        "height": 520,
+        "height": 450,
         "resizable": true,
         "decorations": false,
         "transparent": true,

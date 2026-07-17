@@ -8,7 +8,6 @@ interface AddEditPanelProps {
 }
 
 export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
-  const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,11 +18,9 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
   // Pre-fill fields if we are editing an existing prompt
   useEffect(() => {
     if (prompt) {
-      setTitle(prompt.title);
       setText(prompt.text);
       setTagsInput(prompt.tags.join(', '));
     } else {
-      setTitle('');
       setText('');
       setTagsInput('');
     }
@@ -53,8 +50,11 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
       return;
     }
 
+    const firstLine = text.split('\n')[0].trim();
+    const autoTitle = firstLine.length > 40 ? `${firstLine.substring(0, 40)}...` : firstLine;
+
     setIsSubmitting(true);
-    const success = await onSave(title.trim(), text, parsedTags);
+    const success = await onSave(autoTitle, text, parsedTags);
     setIsSubmitting(false);
 
     if (!success) {
@@ -62,8 +62,19 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      handleSubmit(e as any);
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between p-1 select-text">
+    <form 
+      onSubmit={handleSubmit} 
+      onKeyDown={handleKeyDown}
+      className="flex-1 flex flex-col justify-between p-1 select-text"
+    >
       <div className="space-y-4 overflow-y-auto pr-0.5">
         <h2 className="text-sm font-semibold text-accent mb-2">
           {prompt ? 'Edit Text' : 'New Text'}
@@ -74,19 +85,6 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
             {error}
           </div>
         )}
-
-        {/* Title Input */}
-        <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-semibold text-muted">TITLE (Optional)</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Refactor React Component"
-            className="h-9 px-3 text-[13px] rounded-md bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-            autoFocus
-          />
-        </div>
 
         {/* Text Textarea */}
         <div className="flex flex-col gap-1">
@@ -99,6 +97,7 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
             placeholder="Type or paste your text template here..."
             className="px-3 py-2 text-[13px] rounded-md bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all resize-none min-h-[90px]"
             required
+            autoFocus
           />
         </div>
 

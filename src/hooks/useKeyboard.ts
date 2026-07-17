@@ -5,10 +5,11 @@ interface UseKeyboardProps {
   onEnter: (index: number) => void;
   onShiftEnter: (index: number) => void;
   onEscape: () => void;
+  onCtrlN?: () => void;
   isActive: boolean;
 }
 
-export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, isActive }: UseKeyboardProps) {
+export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, isActive }: UseKeyboardProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   // Reset selected index if items count changes
@@ -17,9 +18,18 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, isAct
   }, [itemsCount]);
 
   useEffect(() => {
-    if (!isActive || itemsCount === 0) return;
+    if (!isActive) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Allow Ctrl+N even if list has no items
+      if (e.key === 'n' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        onCtrlN?.();
+        return;
+      }
+
+      if (itemsCount === 0) return;
+
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         setSelectedIndex(prev => (prev + 1) % itemsCount);
@@ -41,7 +51,7 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, isAct
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [itemsCount, onEnter, onShiftEnter, onEscape, selectedIndex, isActive]);
+  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, selectedIndex, isActive]);
 
   return { selectedIndex, setSelectedIndex };
 }
