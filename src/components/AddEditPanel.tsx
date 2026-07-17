@@ -134,16 +134,18 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
           type="button"
           onClick={onCancel}
           disabled={isSubmitting}
-          className="flex-1 h-9 rounded-md bg-surface border border-border text-xs font-semibold text-muted hover:text-primary transition-all active:scale-[0.98]"
+          className="flex-1 h-9 rounded-md bg-surface border border-border text-xs font-semibold text-muted hover:text-primary transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
         >
-          Cancel
+          <span>Cancel</span>
+          <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Esc</kbd>
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex-1 h-9 rounded-md bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+          className="flex-1 h-9 rounded-md bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
         >
-          {isSubmitting ? 'Saving...' : 'Save Text'}
+          <span>{isSubmitting ? 'Saving...' : 'Save Text'}</span>
+          <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-accent border border-accent-dim text-background font-sans font-medium leading-none opacity-85 shadow-sm">Ctrl+Enter</kbd>
         </button>
       </div>
     </form>

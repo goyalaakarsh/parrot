@@ -6,10 +6,11 @@ interface UseKeyboardProps {
   onShiftEnter: (index: number) => void;
   onEscape: () => void;
   onCtrlN?: () => void;
+  onCtrlComma?: () => void;
   isActive: boolean;
 }
 
-export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, isActive }: UseKeyboardProps) {
+export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, isActive }: UseKeyboardProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   // Reset selected index if items count changes
@@ -25,6 +26,13 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
       if (e.key === 'n' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         onCtrlN?.();
+        return;
+      }
+
+      // Allow Ctrl+, even if list has no items
+      if (e.key === ',' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        onCtrlComma?.();
         return;
       }
 
@@ -51,7 +59,7 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, selectedIndex, isActive]);
+  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, selectedIndex, isActive]);
 
   return { selectedIndex, setSelectedIndex };
 }

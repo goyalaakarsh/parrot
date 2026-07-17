@@ -67,6 +67,7 @@ export function PromptList({
         >
           <Plus size={14} />
           <span className="text-[12px] font-semibold">Add Prompt</span>
+          <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none ml-1 shadow-sm">Ctrl+N</kbd>
         </button>
       </div>
     </div>

@@ -41,10 +41,11 @@ export function SearchBar({ value, onChange, onOpenSettings, isFocused }: Search
       </div>
       <button
         onClick={onOpenSettings}
-        title="Settings"
-        className="flex items-center justify-center w-9 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-all duration-100"
+        title="Settings (Ctrl+,)"
+        className="flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-all duration-100"
       >
-        <Settings size={16} />
+        <Settings size={15} />
+        <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium leading-none">Ctrl+,</kbd>
       </button>
     </div>
   );
