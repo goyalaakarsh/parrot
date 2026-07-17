@@ -7,16 +7,16 @@ use enigo::{Enigo, Key, Keyboard, Settings, Direction};
 pub fn get_current_foreground_hwnd() -> isize {
     unsafe {
         let hwnd = GetForegroundWindow();
-        hwnd.0
+        hwnd.0 as isize
     }
 }
 
 pub fn restore_focus_and_paste(hwnd_val: isize, backspace_count: usize) -> Result<(), String> {
     unsafe {
-        let hwnd = HWND(hwnd_val);
+        let hwnd = HWND(hwnd_val as *mut std::ffi::c_void);
         
         if hwnd_val != 0 {
-            SetForegroundWindow(hwnd);
+            let _ = SetForegroundWindow(hwnd);
             // Non-negotiable 150ms sleep to let OS transfer focus
             thread::sleep(Duration::from_millis(150));
         }

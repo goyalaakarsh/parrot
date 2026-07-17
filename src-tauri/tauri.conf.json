@@ -16,13 +16,27 @@
         "title": "Parrot",
         "width": 380,
         "height": 520,
-        "resizable": false,
+        "resizable": true,
         "decorations": false,
         "transparent": true,
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "visible": false,
         "focus": true
+      },
+      {
+        "label": "tray_menu",
+        "title": "Parrot Menu",
+        "width": 140,
+        "height": 115,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "focus": true,
+        "url": "index.html?window=tray_menu"
       }
     ],
     "security": {
@@ -45,9 +59,5 @@
       "icons/icon.ico"
     ]
   },
-  "plugins": {
-    "positioner": {
-      "default": "TrayBottomRight"
-    }
-  }
+  "plugins": {}
 }

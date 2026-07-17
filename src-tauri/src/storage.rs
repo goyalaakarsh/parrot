@@ -8,7 +8,8 @@ use tauri::Manager;
 pub struct Prompt {
     pub id: String,
     pub title: String,
-    pub body: String,
+    #[serde(alias = "body")]
+    pub text: String,
     pub tags: Vec<String>,
     pub created_at: String,
 }
@@ -58,9 +59,14 @@ pub fn load_settings(app: &tauri::AppHandle) -> Result<Settings, String> {
         // Default settings
         let default_settings = Settings {
             global_shortcut: "CommandOrControl+Shift+Space".to_string(),
-            launch_at_startup: false,
+            launch_at_startup: true,
         };
         save_settings(app, &default_settings)?;
+        
+        // Enable autostart in OS registry on first run
+        use tauri_plugin_autostart::ManagerExt;
+        let _ = app.autolaunch().enable();
+        
         return Ok(default_settings);
     }
     
