@@ -31,24 +31,36 @@ export function PromptCard({
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in inputs/textarea
-      if (
-        document.activeElement?.tagName === 'INPUT' ||
-        document.activeElement?.tagName === 'TEXTAREA'
-      ) {
+      // Ignore if typing in textareas (e.g. edit prompt view)
+      if (document.activeElement?.tagName === 'TEXTAREA') {
         return;
+      }
+
+      if (isDeleting) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.stopPropagation();
+          onDelete();
+          setIsDeleting(false);
+          return;
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDeleting(false);
+          return;
+        }
       }
 
       if (e.key === 'e' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         onEdit();
-      } else if (e.key === 'Delete') {
+      } else if (
+        e.key === 'Delete' || 
+        (e.key === 'd' && (e.ctrlKey || e.metaKey))
+      ) {
         e.preventDefault();
         setIsDeleting(true);
-      } else if (e.key === 'Escape' && isDeleting) {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDeleting(false);
       }
     };
 
@@ -56,12 +68,30 @@ export function PromptCard({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isSelected, isDeleting, onEdit]);
 
-  // Split text to separate title (1st line) and body description (subsequent lines)
   const lines = prompt.text.split('\n');
-  const descriptionText = lines.slice(1).join('\n').trim();
+  
+  // Check if there is a custom title (different from auto-generated first line/full text)
+  const hasCustomTitle = !!(prompt.title && 
+    prompt.title !== lines[0].trim() && 
+    prompt.title !== prompt.text.trim());
+
+  let displayTitle: string | null = null;
+  let displayDescription: string = '';
+
+  if (hasCustomTitle) {
+    displayTitle = prompt.title;
+    displayDescription = prompt.text;
+  } else if (lines.length > 1) {
+    displayTitle = lines[0].trim();
+    displayDescription = lines.slice(1).join('\n').trim();
+  } else {
+    // Single line prompt: no separate title header
+    displayDescription = prompt.text.trim();
+  }
+
   const truncatedDescription = isSelected
-    ? (descriptionText.length > 500 ? `${descriptionText.substring(0, 500)}...` : descriptionText)
-    : (descriptionText.length > 100 ? `${descriptionText.substring(0, 100)}...` : descriptionText);
+    ? (displayDescription.length > 500 ? `${displayDescription.substring(0, 500)}...` : displayDescription)
+    : (displayDescription.length > 100 ? `${displayDescription.substring(0, 100)}...` : displayDescription);
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -118,13 +148,15 @@ export function PromptCard({
         </div>
       ) : (
         <>
-          <div className="w-full text-left">
-            <span className={`text-[13px]  block ${prompt.title ? 'text-primary' : 'text-muted italic'}`}>
-              {prompt.title || 'Untitled'}
-            </span>
-          </div>
+          {displayTitle && (
+            <div className="w-full text-left">
+              <span className="text-[13px] font-semibold block text-primary">
+                {displayTitle}
+              </span>
+            </div>
+          )}
 
-          {descriptionText && (
+          {displayDescription && (
             <p className={`text-xs text-muted mt-1 break-words whitespace-pre-line text-left ${
               isSelected ? 'line-clamp-5' : 'line-clamp-2'
             }`}>
