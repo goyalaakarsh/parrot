@@ -293,7 +293,6 @@ export default function App() {
             value={searchQuery}
             onChange={setSearchQuery}
             onOpenSettings={() => setView('settings')}
-            onAddClick={() => setView('add')}
             onOpenPalette={() => setView('command-palette')}
             isFocused={searchFocused}
           />

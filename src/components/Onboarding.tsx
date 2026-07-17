@@ -1,4 +1,4 @@
-import { Keyboard, Search, Clipboard, ArrowUpDown, CornerDownLeft } from 'lucide-react';
+import { Keyboard, Search, Clipboard, CornerDownLeft, ArrowUpDown } from 'lucide-react';
 
 interface OnboardingProps {
   onDismiss: () => void;
@@ -46,14 +46,18 @@ export function Onboarding({ onDismiss }: OnboardingProps) {
     <div className="absolute inset-0 z-50 flex flex-col bg-background overflow-y-auto">
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
         {/* Logo */}
-        <div className="w-14 h-14 rounded-2xl bg-accent/15 border border-accent/20 flex items-center justify-center mb-4">
-          <span className="text-3xl">🦜</span>
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mb-5 shadow-inner">
+          <img
+            src="/parrot-icon-transparent.png"
+            alt="Parrot"
+            className="w-12 h-12"
+          />
         </div>
 
         <h1 className="text-xl font-semibold text-primary mb-1">
           Welcome to Parrot
         </h1>
-        <p className="text-xs text-muted text-center max-w-[280px] mb-6">
+        <p className="text-xs text-muted text-center max-w-[280px] mb-6 leading-relaxed">
           Your prompts, always a keystroke away.
           Save and paste your frequently used text snippets in any app.
         </p>
@@ -63,7 +67,7 @@ export function Onboarding({ onDismiss }: OnboardingProps) {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="flex flex-col gap-1 p-3 rounded-lg bg-surface border border-border"
+              className="flex flex-col gap-1.5 p-3 rounded-lg bg-surface border border-border"
             >
               <div className="flex items-center gap-1.5">
                 <feature.icon size={13} className="text-accent" aria-hidden="true" />
@@ -74,7 +78,7 @@ export function Onboarding({ onDismiss }: OnboardingProps) {
               <p className="text-[10px] text-muted leading-relaxed">
                 {feature.desc}
               </p>
-              <span className="mt-1 text-[9px] font-mono text-accent/70 bg-accent-dim/20 px-1.5 py-0.5 rounded self-start">
+              <span className="mt-0.5 text-[9px] font-mono text-accent/80 bg-accent-dim/20 px-1.5 py-0.5 rounded self-start">
                 {feature.shortcut}
               </span>
             </div>
@@ -83,7 +87,7 @@ export function Onboarding({ onDismiss }: OnboardingProps) {
 
         {/* Shortcut table */}
         <details className="w-full max-w-[320px] group">
-          <summary className="text-[10px] text-muted cursor-pointer hover:text-primary transition-colors list-none flex items-center gap-1">
+          <summary className="text-[10px] text-muted cursor-pointer hover:text-primary transition-colors list-none flex items-center gap-1 select-none">
             <ArrowUpDown size={11} aria-hidden="true" />
             All keyboard shortcuts
           </summary>
