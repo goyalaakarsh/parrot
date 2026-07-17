@@ -71,7 +71,6 @@ export function TrayMenuPanel() {
         </button>
       ))}
 
-      {/* <div className="h-px bg-[#2d2d2d] mx-3 my-1" /> */}
       <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-[#5a5a5a]">App</div>
       {appItems.map((item, idx) => {
         const globalIdx = actions.length + idx;

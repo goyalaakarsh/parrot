@@ -6,8 +6,6 @@ interface Command {
   label: string;
   category: string;
   shortcut?: string;
-  action: () => void;
-  enabled: boolean;
 }
 
 interface CommandPaletteProps {
@@ -17,7 +15,6 @@ interface CommandPaletteProps {
 
 export function CommandPalette({ onClose, commands }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
@@ -36,29 +33,15 @@ export function CommandPalette({ onClose, commands }: CommandPaletteProps) {
   }, []);
 
   useEffect(() => {
-    setSelectedIndex(0);
-  }, [query]);
-
-  useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedIndex(i => (i + 1) % Math.max(filtered.length, 1));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex(i => (i - 1 + Math.max(filtered.length, 1)) % Math.max(filtered.length, 1));
-      } else if (e.key === 'Enter' && filtered[selectedIndex]) {
-        e.preventDefault();
-        filtered[selectedIndex].action();
-        onClose();
-      } else if (e.key === 'Escape') {
+      if (e.key === 'Escape') {
         e.preventDefault();
         onClose();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [filtered, selectedIndex, onClose]);
+  }, [onClose]);
 
   const categories = useMemo(() => {
     const map = new Map<string, Command[]>();
@@ -105,31 +88,23 @@ export function CommandPalette({ onClose, commands }: CommandPaletteProps) {
             <div className="px-1 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted">
               {category}
             </div>
-            {items.map((cmd) => {
-              const globalIdx = filtered.indexOf(cmd);
-              return (
-                <button
-                  key={cmd.id}
-                  onClick={() => { cmd.action(); onClose(); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-xs text-left rounded-md transition-colors ${
-                    globalIdx === selectedIndex
-                      ? 'bg-surface-hover text-accent'
-                      : cmd.enabled
-                      ? 'text-primary'
-                      : 'text-muted'
-                  } hover:bg-surface-hover`}
-                >
-                  <span>{cmd.label}</span>
-                  {cmd.shortcut && (
-                    <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans">
-                      {cmd.shortcut}
-                    </kbd>
-                  )}
-                </button>
-              );
-            })}
+            {items.map((cmd) => (
+              <div
+                key={cmd.id}
+                className="flex items-center justify-between px-3 py-2 text-xs rounded-md text-primary"
+              >
+                <span>{cmd.label}</span>
+                <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans">
+                  {cmd.shortcut}
+                </kbd>
+              </div>
+            ))}
           </div>
         ))}
+      </div>
+
+      <div className="border-t border-border pt-2 mt-1 text-[9px] text-muted text-center select-none">
+        Use keyboard shortcuts to execute commands
       </div>
     </div>
   );
