@@ -1,0 +1,117 @@
+import { Keyboard, Search, Clipboard, ArrowUpDown, CornerDownLeft } from 'lucide-react';
+
+interface OnboardingProps {
+  onDismiss: () => void;
+}
+
+const features = [
+  {
+    icon: Keyboard,
+    title: 'Global Shortcut',
+    desc: 'Press Ctrl+Space anywhere to summon Parrot',
+    shortcut: 'Ctrl+Space',
+  },
+  {
+    icon: CornerDownLeft,
+    title: 'Instant Paste',
+    desc: 'Select a prompt and press Enter to type it out',
+    shortcut: 'Enter',
+  },
+  {
+    icon: Clipboard,
+    title: 'Copy to Clipboard',
+    desc: 'Copy without pasting using Shift+Enter',
+    shortcut: 'Shift+Enter',
+  },
+  {
+    icon: Search,
+    title: 'Quick Search',
+    desc: 'Start typing to filter prompts instantly',
+    shortcut: 'Type to filter',
+  },
+];
+
+const shortcuts = [
+  { keys: 'Ctrl+K / Ctrl+Space', action: 'Open Parrot' },
+  { keys: '↑ / ↓', action: 'Navigate prompts' },
+  { keys: 'Enter', action: 'Paste selected prompt' },
+  { keys: 'Shift+Enter', action: 'Copy selected prompt' },
+  { keys: 'Ctrl+N', action: 'Add new prompt' },
+  { keys: 'Ctrl+,', action: 'Open settings' },
+  { keys: 'Esc', action: 'Close Parrot' },
+];
+
+export function Onboarding({ onDismiss }: OnboardingProps) {
+  return (
+    <div className="absolute inset-0 z-50 flex flex-col bg-background overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+        {/* Logo */}
+        <div className="w-14 h-14 rounded-2xl bg-accent/15 border border-accent/20 flex items-center justify-center mb-4">
+          <span className="text-3xl">🦜</span>
+        </div>
+
+        <h1 className="text-xl font-semibold text-primary mb-1">
+          Welcome to Parrot
+        </h1>
+        <p className="text-xs text-muted text-center max-w-[280px] mb-6">
+          Your prompts, always a keystroke away.
+          Save and paste your frequently used text snippets in any app.
+        </p>
+
+        {/* Feature grid */}
+        <div className="grid grid-cols-2 gap-2 w-full max-w-[320px] mb-6">
+          {features.map((feature) => (
+            <div
+              key={feature.title}
+              className="flex flex-col gap-1 p-3 rounded-lg bg-surface border border-border"
+            >
+              <div className="flex items-center gap-1.5">
+                <feature.icon size={13} className="text-accent" aria-hidden="true" />
+                <span className="text-[11px] font-medium text-primary">
+                  {feature.title}
+                </span>
+              </div>
+              <p className="text-[10px] text-muted leading-relaxed">
+                {feature.desc}
+              </p>
+              <span className="mt-1 text-[9px] font-mono text-accent/70 bg-accent-dim/20 px-1.5 py-0.5 rounded self-start">
+                {feature.shortcut}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Shortcut table */}
+        <details className="w-full max-w-[320px] group">
+          <summary className="text-[10px] text-muted cursor-pointer hover:text-primary transition-colors list-none flex items-center gap-1">
+            <ArrowUpDown size={11} aria-hidden="true" />
+            All keyboard shortcuts
+          </summary>
+          <div className="mt-2 space-y-1">
+            {shortcuts.map((s) => (
+              <div
+                key={s.keys}
+                className="flex items-center justify-between px-2 py-1 rounded bg-surface/50"
+              >
+                <span className="text-[10px] text-muted">{s.action}</span>
+                <kbd className="text-[9px] font-mono text-accent bg-accent-dim/15 px-1.5 py-0.5 rounded">
+                  {s.keys}
+                </kbd>
+              </div>
+            ))}
+          </div>
+        </details>
+      </div>
+
+      {/* Bottom button */}
+      <div className="shrink-0 px-6 pb-5 pt-2">
+        <button
+          onClick={onDismiss}
+          className="w-full py-2.5 rounded-lg bg-accent text-background text-sm font-medium hover:bg-accent/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+        >
+          Get Started
+        </button>
+      </div>
+    </div>
+  );
+}

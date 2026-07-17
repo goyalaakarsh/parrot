@@ -40,7 +40,7 @@ pub fn start_keyboard_hook() {
 
         let mut msg = MSG::default();
         while GetMessageW(&mut msg, None, 0, 0).as_bool() {
-            TranslateMessage(&msg);
+            let _ = TranslateMessage(&msg);
             DispatchMessageW(&msg);
         }
 
@@ -134,7 +134,7 @@ unsafe extern "system" fn keyboard_hook_proc(
                 // If our window is focused, let the input go through normally without global capture
                 let tauri_focused = if let Some(ref window) = main_window {
                     if let Ok(hwnd) = window.hwnd() {
-                        hwnd.0 == foreground_hwnd.0
+                        hwnd.0 as isize == foreground_hwnd.0 as isize
                     } else {
                         false
                     }
@@ -146,7 +146,7 @@ unsafe extern "system" fn keyboard_hook_proc(
                     // Check if foreground window switched during active inline search
                     if state.inline_search_active {
                         if let Some(target) = state.target_hwnd {
-                            if foreground_hwnd.0 != target && foreground_hwnd.0 != 0 {
+                            if foreground_hwnd.0 as isize != target && foreground_hwnd.0 as isize != 0 {
                                 // Foreground window changed, close inline search
                                 drop(state);
                                 deactivate_inline_search();
@@ -195,15 +195,15 @@ unsafe extern "system" fn keyboard_hook_proc(
                             // Detect trigger: /parrot:"
                             if state.buffer.ends_with("/parrot:\"") {
                                 state.inline_search_active = true;
-                                state.target_hwnd = Some(foreground_hwnd.0);
+                                state.target_hwnd = Some(foreground_hwnd.0 as isize);
                                 state.query.clear();
                                 state.backspace_count = 9; // "/parrot:\"" is 9 chars
 
                                 if let Some(window) = main_window {
                                     let _ = window.move_window(Position::TrayBottomRight);
                                     if let Ok(hwnd) = window.hwnd() {
-                                        // Show window without focus
-                                        ShowWindow(hwnd, SW_SHOWNA);
+                                        // Show window without focus using local HWND type
+                                        let _ = ShowWindow(HWND(hwnd.0 as *mut std::ffi::c_void), SW_SHOWNA);
                                     }
                                     let _ = app.emit("inline-search-start", ());
                                     let _ = app.emit("inline-search-query", "".to_string());
