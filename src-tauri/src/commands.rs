@@ -84,6 +84,17 @@ pub fn paste_to_previous_window(hwnd: isize) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn check_first_run(app: AppHandle) -> Result<bool, String> {
+    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let marker = data_dir.join(".parrot-onboarded");
+    if marker.exists() {
+        return Ok(false);
+    }
+    std::fs::write(&marker, "").map_err(|e| e.to_string())?;
+    Ok(true)
+}
+
+#[tauri::command]
 pub fn get_foreground_hwnd() -> Result<isize, String> {
     let last = LAST_FOREGROUND_HWND.lock().unwrap();
     

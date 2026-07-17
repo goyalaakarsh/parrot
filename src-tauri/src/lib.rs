@@ -194,6 +194,7 @@ pub fn run() {
             commands::open_main_window,
             commands::paste_to_previous_window,
             commands::get_foreground_hwnd,
+            commands::check_first_run,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

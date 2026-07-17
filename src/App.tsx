@@ -10,6 +10,7 @@ import { AddEditPanel } from './components/AddEditPanel';
 import { SettingsPanel } from './components/SettingsPanel';
 import { TrayMenuPanel } from './components/TrayMenuPanel';
 import { Toast } from './components/Toast';
+import { Onboarding } from './components/Onboarding';
 
 import { usePrompts } from './hooks/usePrompts';
 import { useSearch } from './hooks/useSearch';
@@ -174,12 +175,24 @@ export default function App() {
 
   const isTrayMenu = window.location.search.includes('window=tray_menu');
 
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    invoke<boolean>('check_first_run').then((isFirst) => {
+      if (isFirst) setShowOnboarding(true);
+    });
+  }, []);
+
   if (isTrayMenu) {
     return <TrayMenuPanel />;
   }
 
   return (
     <div className="w-full h-full bg-background border border-border rounded-lg overflow-clip flex flex-col p-3 select-none">
+      {showOnboarding && (
+        <Onboarding onDismiss={() => setShowOnboarding(false)} />
+      )}
+
       {toastMessage && (
         <Toast message={toastMessage} type={toastType} onClose={hideToast} />
       )}
