@@ -51,6 +51,8 @@ pub fn open_main_window(app: AppHandle, view: String) -> Result<(), String> {
 
         if view == "settings" {
             let _ = app.emit("open-settings", ());
+        } else if view == "command-palette" {
+            let _ = app.emit("open-palette", ());
         } else {
             let _ = app.emit("open-list", ());
         }

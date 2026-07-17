@@ -112,6 +112,7 @@ export default function App() {
     onCtrlComma: () => setView('settings'),
     onCtrlK: () => setShowCommandPalette(true),
     isActive: view === 'list' && !loading,
+    isPaletteOpen: showCommandPalette,
   });
 
   // Commands for the command palette
@@ -196,10 +197,16 @@ export default function App() {
       setView('tray-menu');
     });
 
+    const unlistenOpenPalette = listen('open-palette', () => {
+      setView('list');
+      setShowCommandPalette(true);
+    });
+
     return () => {
       unlistenOpenList.then((f) => f());
       unlistenOpenSettings.then((f) => f());
       unlistenOpenTrayMenu.then((f) => f());
+      unlistenOpenPalette.then((f) => f());
     };
   }, []);
 

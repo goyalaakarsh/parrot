@@ -109,6 +109,11 @@ pub fn run() {
                                     if is_visible {
                                         let _ = window.hide();
                                     } else if !just_hidden {
+                                        // Capture foreground HWND before tray menu takes focus
+                                        let hwnd = get_current_foreground_hwnd();
+                                        if crate::paste::is_valid_user_window(hwnd) {
+                                            *LAST_FOREGROUND_HWND.lock().unwrap() = Some(hwnd);
+                                        }
                                         let _ = window.show();
                                         let _ = window.move_window(Position::TrayCenter);
                                         let _ = window.set_focus();

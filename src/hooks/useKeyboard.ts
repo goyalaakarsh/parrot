@@ -9,9 +9,10 @@ interface UseKeyboardProps {
   onCtrlComma?: () => void;
   onCtrlK?: () => void;
   isActive: boolean;
+  isPaletteOpen?: boolean;
 }
 
-export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, isActive }: UseKeyboardProps) {
+export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, isActive, isPaletteOpen }: UseKeyboardProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   // Reset selected index if items count changes
@@ -20,9 +21,16 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
   }, [itemsCount]);
 
   useEffect(() => {
-    if (!isActive) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Allow Ctrl+K from anywhere (not gated by isActive)
+      if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        onCtrlK?.();
+        return;
+      }
+
+      if (!isActive) return;
+
       // Allow Ctrl+N even if list has no items
       if (e.key === 'n' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
@@ -34,13 +42,6 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
       if (e.key === ',' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         onCtrlComma?.();
-        return;
-      }
-
-      // Allow Ctrl+K even if list has no items
-      if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        onCtrlK?.();
         return;
       }
 
@@ -59,7 +60,7 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
         } else {
           onEnter(selectedIndex);
         }
-      } else if (e.key === 'Escape') {
+      } else if (e.key === 'Escape' && !isPaletteOpen) {
         e.preventDefault();
         onEscape();
       }
@@ -67,7 +68,7 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, selectedIndex, isActive]);
+  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, selectedIndex, isActive, isPaletteOpen]);
 
   return { selectedIndex, setSelectedIndex };
 }

@@ -46,7 +46,7 @@ export function TrayMenuPanel() {
 
   const actions: ActionItem[] = [
     { id: 'add', label: 'Add Prompt', icon: <Plus size={14} />, shortcut: 'Ctrl+N', action: () => handleOpenView('add') },
-    { id: 'palette', label: 'Command Palette', icon: <Command size={14} />, shortcut: 'Ctrl+K', action: () => handleOpenView('list') },
+    { id: 'palette', label: 'Command Palette', icon: <Command size={14} />, shortcut: 'Ctrl+K', action: () => handleOpenView('command-palette') },
     { id: 'open', label: 'Open Prompts', icon: <Search size={14} />, action: () => handleOpenView('list') },
     { id: 'settings', label: 'Settings', icon: <Settings size={14} />, shortcut: 'Ctrl+,', action: () => handleOpenView('settings') },
   ];
