@@ -43,7 +43,7 @@ pub fn handle_hotkey_trigger(app: &AppHandle) {
                 let _ = window.show();
                 // Position and display the Tauri window
                 if !crate::HAS_SHOWN_ONCE.load(std::sync::atomic::Ordering::Relaxed) {
-                    let _ = window.move_window(Position::TrayBottomRight);
+                    let _ = window.move_window(Position::TrayCenter);
                     crate::HAS_SHOWN_ONCE.store(true, std::sync::atomic::Ordering::Relaxed);
                 }
                 let _ = window.set_focus();

@@ -44,7 +44,7 @@ pub fn open_main_window(app: AppHandle, view: String) -> Result<(), String> {
         
         let _ = main_win.show();
         if !crate::HAS_SHOWN_ONCE.load(std::sync::atomic::Ordering::Relaxed) {
-            let _ = main_win.move_window(tauri_plugin_positioner::Position::TrayBottomRight);
+            let _ = main_win.move_window(tauri_plugin_positioner::Position::TrayCenter);
             crate::HAS_SHOWN_ONCE.store(true, std::sync::atomic::Ordering::Relaxed);
         }
         let _ = main_win.set_focus();

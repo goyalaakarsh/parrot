@@ -59,6 +59,7 @@ pub fn run() {
             let _tray = TrayIconBuilder::new()
                 .icon(tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png")).expect("Failed to load tray icon"))
                 .on_tray_icon_event(move |tray, event| {
+                    tauri_plugin_positioner::on_tray_event(tray.app_handle(), &event);
                     if let tauri::tray::TrayIconEvent::Click { button_state: tauri::tray::MouseButtonState::Up, button, .. } = event {
                         let app = tray.app_handle();
                         
@@ -89,7 +90,7 @@ pub fn run() {
                                         
                                         // Only position on first show so the user can drag/relocate it afterwards
                                         if !HAS_SHOWN_ONCE.load(std::sync::atomic::Ordering::Relaxed) {
-                                            let _ = window.move_window(Position::TrayBottomRight);
+                                            let _ = window.move_window(Position::TrayCenter);
                                             HAS_SHOWN_ONCE.store(true, std::sync::atomic::Ordering::Relaxed);
                                         }
                                         
@@ -120,7 +121,7 @@ pub fn run() {
                                         let _ = window.hide();
                                     } else if !just_hidden {
                                         let _ = window.show();
-                                        let _ = window.move_window(Position::TrayBottomRight);
+                                        let _ = window.move_window(Position::TrayCenter);
                                         let _ = window.set_focus();
                                     }
                                 }
