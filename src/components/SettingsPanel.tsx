@@ -147,9 +147,10 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
           <button
             onClick={onBack}
             aria-label="Back to prompts"
-            className="p-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-all"
+            className="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-all"
           >
             <ArrowLeft size={16} aria-hidden="true" />
+            <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none">Esc</kbd>
           </button>
           <h2 className="text-sm font-semibold text-primary">Settings</h2>
         </div>

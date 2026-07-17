@@ -45,9 +45,10 @@ export function SearchBar({ value, onChange, onOpenSettings, onAddClick, isFocus
         onClick={onAddClick}
         title="Add prompt (Ctrl+N)"
         aria-label="Add prompt"
-        className="flex items-center justify-center w-9 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-all duration-100"
+        className="flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-all duration-100"
       >
-        <Plus size={16} aria-hidden="true" />
+        <Plus size={15} aria-hidden="true" />
+        <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium leading-none">Ctrl+N</kbd>
       </button>
       <button
         onClick={onOpenSettings}

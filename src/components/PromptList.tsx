@@ -40,9 +40,10 @@ export function PromptList({
         <button
           onClick={onAddClick}
           aria-label="Add your first prompt"
-          className="px-3.5 py-1.5 rounded-lg bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-95 transition-all shadow-md shadow-accent/10"
+          className="px-3.5 py-1.5 rounded-lg bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-95 transition-all shadow-md shadow-accent/10 flex items-center gap-2"
         >
-          + Add your first prompt
+          <span>+ Add your first prompt</span>
+          <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-accent-dim border border-accent/40 text-background font-sans font-medium leading-none opacity-85">Ctrl+N</kbd>
         </button>
       </div>
     );
