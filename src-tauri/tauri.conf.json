@@ -31,8 +31,8 @@
       {
         "label": "tray_menu",
         "title": "Parrot Menu",
-        "width": 240,
-        "height": 280,
+        "width": 220,
+        "height": 260,
         "resizable": false,
         "decorations": false,
         "transparent": true,

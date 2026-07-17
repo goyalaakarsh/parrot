@@ -8,6 +8,7 @@ import { SearchBar } from './components/SearchBar';
 import { PromptList } from './components/PromptList';
 import { AddEditPanel } from './components/AddEditPanel';
 import { SettingsPanel } from './components/SettingsPanel';
+import { AboutPanel } from './components/AboutPanel';
 import { TrayMenuPanel } from './components/TrayMenuPanel';
 import { CommandPalette } from './components/CommandPalette';
 import { Toast } from './components/Toast';
@@ -19,7 +20,7 @@ import { useKeyboard } from './hooks/useKeyboard';
 import { Prompt } from './types';
 
 export default function App() {
-  const [view, setView] = useState<'list' | 'add' | 'edit' | 'settings' | 'tray-menu'>('list');
+  const [view, setView] = useState<'list' | 'add' | 'edit' | 'settings' | 'about' | 'tray-menu'>('list');
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(true);
@@ -173,6 +174,13 @@ export default function App() {
       enabled: true,
     },
     {
+      id: 'about',
+      label: 'About Parrot',
+      category: 'App',
+      action: () => setView('about'),
+      enabled: true,
+    },
+    {
       id: 'quit',
       label: 'Quit Parrot',
       category: 'App',
@@ -197,6 +205,14 @@ export default function App() {
       setView('tray-menu');
     });
 
+    const unlistenOpenAdd = listen('open-add', () => {
+      setView('add');
+    });
+
+    const unlistenOpenAbout = listen('open-about', () => {
+      setView('about');
+    });
+
     const unlistenOpenPalette = listen('open-palette', () => {
       setView('list');
       setShowCommandPalette(true);
@@ -206,6 +222,8 @@ export default function App() {
       unlistenOpenList.then((f) => f());
       unlistenOpenSettings.then((f) => f());
       unlistenOpenTrayMenu.then((f) => f());
+      unlistenOpenAdd.then((f) => f());
+      unlistenOpenAbout.then((f) => f());
       unlistenOpenPalette.then((f) => f());
     };
   }, []);
@@ -319,6 +337,15 @@ export default function App() {
           <SettingsPanel
             onBack={() => setView('list')}
             showToast={showToast}
+          />
+        </>
+      )}
+
+      {view === 'about' && (
+        <>
+          <div data-tauri-drag-region className="h-2 w-full shrink-0 -mx-3 -mt-3 mb-2 cursor-default" />
+          <AboutPanel
+            onBack={() => setView('list')}
           />
         </>
       )}
