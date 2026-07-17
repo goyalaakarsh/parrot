@@ -6,7 +6,6 @@
 
 - System tray residency with custom dark-themed context menu
 - Global shortcut trigger (Ctrl+Shift+Space, configurable)
-- Inline typing trigger (/parrot:"query")
 - Prompt CRUD with auto-paste and copy flows
 - Search with multi-word matching across titles, text, and tags
 - Settings panel with shortcut capture and launch-at-startup toggle

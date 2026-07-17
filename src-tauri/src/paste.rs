@@ -48,7 +48,7 @@ pub fn is_valid_user_window(hwnd_val: isize) -> bool {
     true
 }
 
-pub fn restore_focus_and_paste(hwnd_val: isize, backspace_count: usize) -> Result<(), String> {
+pub fn restore_focus_and_paste(hwnd_val: isize) -> Result<(), String> {
     unsafe {
         let hwnd = HWND(hwnd_val as *mut std::ffi::c_void);
         
@@ -59,17 +59,6 @@ pub fn restore_focus_and_paste(hwnd_val: isize, backspace_count: usize) -> Resul
         }
 
         let mut enigo = Enigo::new(&Settings::default()).map_err(|e| e.to_string())?;
-
-        // If this paste was triggered via inline search (/parrot:), delete the trigger text first
-        for _ in 0..backspace_count {
-            enigo.key(Key::Backspace, Direction::Press).ok();
-            enigo.key(Key::Backspace, Direction::Release).ok();
-        }
-
-        if backspace_count > 0 {
-            // Tiny extra sleep to ensure backspaces are processed before pasting
-            thread::sleep(Duration::from_millis(50));
-        }
 
         // Simulate Ctrl+V pasting
         enigo.key(Key::Control, Direction::Press).ok();

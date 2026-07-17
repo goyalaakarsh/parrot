@@ -27,12 +27,6 @@ pub fn run() {
             Some(vec!["--minimized"]),
         ))
         .setup(|app| {
-            // Setup the global app handle for the keyboard hook
-            hook::APP_HANDLE.set(app.handle().clone()).ok();
-            
-            // Start the low-level keyboard hook thread
-            hook::start_keyboard_hook();
-
             // Register global shortcut handler plugin
             app.handle().plugin(
                 tauri_plugin_global_shortcut::Builder::new()
@@ -159,8 +153,6 @@ pub fn run() {
                                 if let Ok(mut last_hide) = last_hide_time_clone.lock() {
                                     *last_hide = Some(std::time::Instant::now());
                                 }
-                                // Also deactivate any active inline search
-                                hook::deactivate_inline_search();
                             }
                         }
                     }

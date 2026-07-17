@@ -21,7 +21,6 @@ export default function App() {
   const [view, setView] = useState<'list' | 'add' | 'edit' | 'settings' | 'tray-menu'>('list');
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [inlineActive, setInlineActive] = useState(false);
   const [searchFocused, setSearchFocused] = useState(true);
 
   // Toast state
@@ -112,23 +111,6 @@ export default function App() {
 
   // Listen for Tauri events
   useEffect(() => {
-    const unlistenStart = listen('inline-search-start', () => {
-      setInlineActive(true);
-      setView('list');
-      setSearchQuery('');
-      setSearchFocused(true);
-    });
-
-    const unlistenQuery = listen<string>('inline-search-query', (event) => {
-      setSearchQuery(event.payload);
-      setInlineActive(true);
-    });
-
-    const unlistenEnd = listen('inline-search-end', () => {
-      setInlineActive(false);
-      setSearchQuery('');
-    });
-
     const unlistenOpenList = listen('open-list', () => {
       setView('list');
       setSearchQuery('');
@@ -144,9 +126,6 @@ export default function App() {
     });
 
     return () => {
-      unlistenStart.then((f) => f());
-      unlistenQuery.then((f) => f());
-      unlistenEnd.then((f) => f());
       unlistenOpenList.then((f) => f());
       unlistenOpenSettings.then((f) => f());
       unlistenOpenTrayMenu.then((f) => f());
@@ -227,17 +206,6 @@ export default function App() {
               onPastePrompt={handlePastePrompt}
               onAddClick={() => setView('add')}
             />
-          )}
-          {inlineActive && (
-            <div className="mt-1 flex items-center justify-between px-2 py-1 bg-accent-dim/10 border border-accent/20 rounded-md text-[10px] text-accent animate-pulse">
-              <span>Inline search active: type to filter, click card to paste</span>
-              <button
-                onClick={handleKeyboardEscape}
-                className="hover:underline font-bold"
-              >
-                [Esc] Close
-              </button>
-            </div>
           )}
         </>
       )}

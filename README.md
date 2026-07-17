@@ -23,7 +23,6 @@
 - **System Tray Residency**: Runs quietly in your system tray. Left-click toggles the popup; right-click opens a custom dark-themed context menu.
 - **Persistent Relocated Position**: Drag the window from any empty space. Parrot remembers your position.
 - **Global Shortcut Trigger**: Press `Ctrl+Shift+Space` (configurable) from any application to toggle the window.
-- **Inline Typing Trigger**: Type `/parrot:"your-search-query"` inside any text field. Parrot opens and pastes your selection automatically.
 - **Auto-Paste Flow**: Intelligently restores focus to your previous window and pastes using simulated keystrokes.
 - **Keyboard-First Navigation**: Every action has a keyboard shortcut � no mouse required.
 - **Local Storage**: Fully offline. Data stored as structured JSON � no databases, no network calls.

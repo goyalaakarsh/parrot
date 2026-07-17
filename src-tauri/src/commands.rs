@@ -2,7 +2,6 @@ use tauri::{AppHandle, Manager, Emitter};
 
 use crate::storage::{self, Prompt, Settings};
 use crate::paste::{get_current_foreground_hwnd, restore_focus_and_paste, is_valid_user_window};
-use crate::hook::{HOOK_STATE, deactivate_inline_search};
 use std::sync::Mutex;
 
 pub static LAST_FOREGROUND_HWND: Mutex<Option<isize>> = Mutex::new(None);
@@ -66,21 +65,7 @@ pub fn open_main_window(app: AppHandle, view: String) -> Result<(), String> {
 
 #[tauri::command]
 pub fn paste_to_previous_window(hwnd: isize) -> Result<(), String> {
-    let mut backspace_count = 0;
-    
-    // Read and reset the inline hook backspace count if inline search is active
-    {
-        let state = HOOK_STATE.lock().unwrap();
-        if state.inline_search_active {
-            backspace_count = state.backspace_count;
-        }
-    }
-    
-    // Deactivate the inline search UI and release hooks
-    deactivate_inline_search();
-    
-    // Perform focus restore and paste simulation
-    restore_focus_and_paste(hwnd, backspace_count)
+    restore_focus_and_paste(hwnd)
 }
 
 #[tauri::command]
