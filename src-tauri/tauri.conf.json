@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Parrot",
   "version": "0.1.0",
-  "identifier": "dev.parrot.app",
+  "identifier": "com.parrot.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -15,7 +15,11 @@
         "label": "main",
         "title": "Parrot",
         "width": 380,
-        "height": 520,
+        "height": 480,
+        "minWidth": 380,
+        "minHeight": 480,
+        "maxWidth": 380,
+        "maxHeight": 480,
         "resizable": false,
         "decorations": false,
         "transparent": true,
@@ -23,6 +27,20 @@
         "skipTaskbar": true,
         "visible": false,
         "focus": true
+      },
+      {
+        "label": "tray_menu",
+        "title": "Parrot Menu",
+        "width": 140,
+        "height": 115,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "focus": true,
+        "url": "index.html?window=tray_menu"
       }
     ],
     "security": {
@@ -43,11 +61,13 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
-  },
-  "plugins": {
-    "positioner": {
-      "default": "TrayBottomRight"
+    ],
+    "windows": {
+      "nsis": {
+        "installerIcon": "./icons/icon.ico",
+        "installMode": "currentUser"
+      }
     }
-  }
+  },
+  "plugins": {}
 }
