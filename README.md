@@ -13,6 +13,7 @@
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-v18-61dafb?logo=react&logoColor=white" alt="React" /></a>
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-1.75%2B-orange?logo=rust&logoColor=white" alt="Rust" /></a>
   <a href="https://microsoft.com/windows"><img src="https://img.shields.io/badge/Platform-Windows-blue?logo=windows&logoColor=white" alt="Platform" /></a>
+  <a href="https://github.com/goyalaakarsh/parrot/releases/latest"><img src="https://img.shields.io/github/v/release/goyalaakarsh/parrot?label=Download&logo=github" alt="Download" /></a>
 </p>
 
 ---
@@ -24,8 +25,8 @@
 - **Global Shortcut Trigger**: Press `Ctrl+Shift+Space` (configurable) from any application to toggle the window.
 - **Inline Typing Trigger**: Type `/parrot:"your-search-query"` inside any text field. Parrot opens and pastes your selection automatically.
 - **Auto-Paste Flow**: Intelligently restores focus to your previous window and pastes using simulated keystrokes.
-- **Keyboard-First Navigation**: Every action has a keyboard shortcut — no mouse required.
-- **Local Storage**: Fully offline. Data stored as structured JSON — no databases, no network calls.
+- **Keyboard-First Navigation**: Every action has a keyboard shortcut ï¿½ no mouse required.
+- **Local Storage**: Fully offline. Data stored as structured JSON ï¿½ no databases, no network calls.
 
 ---
 
@@ -57,9 +58,7 @@
 
 ## Installation
 
-1. Go to the **Releases** tab.
-2. Download the latest `Parrot_0.1.0_x64_en-US.msi` installer.
-3. Run the installer and launch Parrot from your desktop or start menu.
+Download the latest installer from the [Releases page](https://github.com/goyalaakarsh/parrot/releases/latest) (or click the badge above), then run the MSI and launch Parrot from your desktop or start menu.
 
 ---
 
