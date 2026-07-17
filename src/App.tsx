@@ -20,11 +20,10 @@ import { useKeyboard } from './hooks/useKeyboard';
 import { Prompt } from './types';
 
 export default function App() {
-  const [view, setView] = useState<'list' | 'add' | 'edit' | 'settings' | 'about' | 'tray-menu'>('list');
+  const [view, setView] = useState<'list' | 'add' | 'edit' | 'settings' | 'about' | 'command-palette' | 'tray-menu'>('list');
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(true);
-  const [showCommandPalette, setShowCommandPalette] = useState(false);
 
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -111,9 +110,8 @@ export default function App() {
     onEscape: handleKeyboardEscape,
     onCtrlN: () => setView('add'),
     onCtrlComma: () => setView('settings'),
-    onCtrlK: () => setShowCommandPalette(true),
+    onCtrlK: () => setView('command-palette'),
     isActive: view === 'list' && !loading,
-    isPaletteOpen: showCommandPalette,
   });
 
   // Commands for the command palette
@@ -170,7 +168,7 @@ export default function App() {
       label: 'Command Palette',
       category: 'App',
       shortcut: 'Ctrl+K',
-      action: () => setShowCommandPalette(true),
+      action: () => setView('command-palette'),
       enabled: true,
     },
     {
@@ -214,8 +212,7 @@ export default function App() {
     });
 
     const unlistenOpenPalette = listen('open-palette', () => {
-      setView('list');
-      setShowCommandPalette(true);
+      setView('command-palette');
     });
 
     return () => {
@@ -268,6 +265,7 @@ export default function App() {
     edit: 'Edit Prompt',
     settings: 'Settings',
     about: 'About',
+    'command-palette': 'Commands',
   };
 
   return (
@@ -296,7 +294,7 @@ export default function App() {
             onChange={setSearchQuery}
             onOpenSettings={() => setView('settings')}
             onAddClick={() => setView('add')}
-            onOpenPalette={() => setShowCommandPalette(true)}
+            onOpenPalette={() => setView('command-palette')}
             isFocused={searchFocused}
           />
           {loading ? (
@@ -355,9 +353,9 @@ export default function App() {
         />
       )}
 
-      {showCommandPalette && (
+      {view === 'command-palette' && (
         <CommandPalette
-          onClose={() => setShowCommandPalette(false)}
+          onClose={() => setView('list')}
           commands={commands}
         />
       )}

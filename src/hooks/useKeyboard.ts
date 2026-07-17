@@ -9,10 +9,9 @@ interface UseKeyboardProps {
   onCtrlComma?: () => void;
   onCtrlK?: () => void;
   isActive: boolean;
-  isPaletteOpen?: boolean;
 }
 
-export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, isActive, isPaletteOpen }: UseKeyboardProps) {
+export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, isActive }: UseKeyboardProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   // Reset selected index if items count changes
@@ -60,7 +59,7 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
         } else {
           onEnter(selectedIndex);
         }
-      } else if (e.key === 'Escape' && !isPaletteOpen) {
+      } else if (e.key === 'Escape') {
         e.preventDefault();
         onEscape();
       }
@@ -68,7 +67,7 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, selectedIndex, isActive, isPaletteOpen]);
+  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, selectedIndex, isActive]);
 
   return { selectedIndex, setSelectedIndex };
 }
