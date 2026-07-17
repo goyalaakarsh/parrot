@@ -262,6 +262,14 @@ export default function App() {
     return <TrayMenuPanel />;
   }
 
+  const screenName: Record<string, string> = {
+    list: 'Prompts',
+    add: 'Add Prompt',
+    edit: 'Edit Prompt',
+    settings: 'Settings',
+    about: 'About',
+  };
+
   return (
     <div className="w-full h-full bg-background border border-border rounded-lg overflow-clip flex flex-col p-3 select-none">
       {showOnboarding && (
@@ -272,14 +280,23 @@ export default function App() {
         <Toast message={toastMessage} type={toastType} onClose={hideToast} />
       )}
 
+      {/* Top bar */}
+      <div data-tauri-drag-region className="flex items-center justify-between -mx-3 -mt-3 px-3 py-2 border-b border-border mb-3 cursor-default shrink-0">
+        <div className="flex items-center gap-2">
+          <img src="/parrot-icon-transparent.png" alt="" className="w-5 h-5" />
+          <span className="text-xs font-semibold text-primary">Parrot</span>
+        </div>
+        <span className="text-[10px] font-medium text-muted">{screenName[view] || view}</span>
+      </div>
+
       {view === 'list' && (
         <>
-          <div data-tauri-drag-region className="h-2 w-full shrink-0 -mx-3 -mt-3 mb-2 cursor-default" />
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
             onOpenSettings={() => setView('settings')}
             onAddClick={() => setView('add')}
+            onOpenPalette={() => setShowCommandPalette(true)}
             isFocused={searchFocused}
           />
           {loading ? (
@@ -307,47 +324,35 @@ export default function App() {
       )}
 
       {view === 'add' && (
-        <>
-          <div data-tauri-drag-region className="h-2 w-full shrink-0 -mx-3 -mt-3 mb-2 cursor-default" />
-          <AddEditPanel
-            prompt={null}
-            onSave={handleAddSave}
-            onCancel={() => setView('list')}
-          />
-        </>
+        <AddEditPanel
+          prompt={null}
+          onSave={handleAddSave}
+          onCancel={() => setView('list')}
+        />
       )}
 
       {view === 'edit' && (
-        <>
-          <div data-tauri-drag-region className="h-2 w-full shrink-0 -mx-3 -mt-3 mb-2 cursor-default" />
-          <AddEditPanel
-            prompt={editingPrompt}
-            onSave={handleEditSave}
-            onCancel={() => {
-              setEditingPrompt(null);
-              setView('list');
-            }}
-          />
-        </>
+        <AddEditPanel
+          prompt={editingPrompt}
+          onSave={handleEditSave}
+          onCancel={() => {
+            setEditingPrompt(null);
+            setView('list');
+          }}
+        />
       )}
 
       {view === 'settings' && (
-        <>
-          <div data-tauri-drag-region className="h-2 w-full shrink-0 -mx-3 -mt-3 mb-2 cursor-default" />
-          <SettingsPanel
-            onBack={() => setView('list')}
-            showToast={showToast}
-          />
-        </>
+        <SettingsPanel
+          onBack={() => setView('list')}
+          showToast={showToast}
+        />
       )}
 
       {view === 'about' && (
-        <>
-          <div data-tauri-drag-region className="h-2 w-full shrink-0 -mx-3 -mt-3 mb-2 cursor-default" />
-          <AboutPanel
-            onBack={() => setView('list')}
-          />
-        </>
+        <AboutPanel
+          onBack={() => setView('list')}
+        />
       )}
 
       {showCommandPalette && (

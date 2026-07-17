@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { Prompt } from '../types';
 
 interface AddEditPanelProps {
@@ -86,9 +87,20 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
       className="flex-1 flex flex-col justify-between p-1 select-text"
     >
       <div className="space-y-4 overflow-y-auto pr-0.5">
-        <h2 className="text-sm font-semibold text-accent mb-2">
-          {prompt ? 'Edit Text' : 'New Text'}
-        </h2>
+        <div className="flex items-center gap-2 border-b border-border pb-2.5 mb-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            aria-label="Back to prompts"
+            className="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-all"
+          >
+            <ArrowLeft size={16} aria-hidden="true" />
+            <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none">Esc</kbd>
+          </button>
+          <h2 className="text-sm font-semibold text-primary">
+            {prompt ? 'Edit Text' : 'New Text'}
+          </h2>
+        </div>
 
         {error && (
           <div role="alert" className="px-3 py-2 rounded bg-danger/10 border border-danger/20 text-danger text-xs">

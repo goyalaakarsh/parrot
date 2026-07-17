@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Command, Github } from 'lucide-react';
 
 interface AboutPanelProps {
   onBack: () => void;
@@ -19,18 +19,39 @@ export function AboutPanel({ onBack }: AboutPanelProps) {
         <h2 className="text-sm font-semibold text-primary">About</h2>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center text-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-          <span className="text-2xl">🦜</span>
+      <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center shadow-inner">
+          <img
+            src="/parrot-icon-transparent.png"
+            alt="Parrot"
+            className="w-12 h-12"
+          />
         </div>
+
         <div>
-          <h3 className="text-sm font-bold text-primary">Parrot</h3>
-          <p className="text-[10px] text-muted mt-0.5">Version 0.1.0</p>
+          <h3 className="text-base font-bold text-primary">Parrot</h3>
+          <p className="text-[11px] text-muted mt-0.5">Version 0.1.0</p>
         </div>
-        <p className="text-[11px] text-muted leading-relaxed max-w-[250px]">
-          A lightweight tray prompt manager. Store, search, and paste your frequently used AI prompts into any window.
-        </p>
-        <div className="text-[10px] text-muted mt-2">
+
+        <div className="w-full max-w-[240px] px-4 py-3 rounded-lg bg-surface border border-border">
+          <p className="text-[11px] text-muted leading-relaxed">
+            A lightweight tray prompt manager. Store, search, and paste your frequently used AI prompts into any window.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 mt-1">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted">
+            <Command size={11} />
+            <span>Ctrl+K</span>
+          </div>
+          <span className="text-border">|</span>
+          <div className="flex items-center gap-1.5 text-[10px] text-muted">
+            <Github size={11} />
+            <span>Parrot</span>
+          </div>
+        </div>
+
+        <div className="text-[9px] text-muted/60 mt-auto pt-4 border-t border-border w-full text-center">
           Built with Tauri v2 + React
         </div>
       </div>
