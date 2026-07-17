@@ -36,7 +36,9 @@ pub fn handle_hotkey_trigger(app: &AppHandle) {
             } else {
                 // Capture the foreground window HWND immediately before our window takes focus
                 let hwnd = get_current_foreground_hwnd();
-                *LAST_FOREGROUND_HWND.lock().unwrap() = Some(hwnd);
+                if crate::paste::is_valid_user_window(hwnd) {
+                    *LAST_FOREGROUND_HWND.lock().unwrap() = Some(hwnd);
+                }
                 
                 let _ = window.show();
                 // Position and display the Tauri window

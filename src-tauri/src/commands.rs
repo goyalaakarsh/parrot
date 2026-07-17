@@ -1,7 +1,7 @@
 use tauri::{AppHandle, Manager, Emitter};
 use tauri_plugin_positioner::WindowExt;
 use crate::storage::{self, Prompt, Settings};
-use crate::paste::{get_current_foreground_hwnd, restore_focus_and_paste};
+use crate::paste::{get_current_foreground_hwnd, restore_focus_and_paste, is_valid_user_window};
 use crate::hook::{HOOK_STATE, deactivate_inline_search};
 use std::sync::Mutex;
 
@@ -38,7 +38,9 @@ pub fn exit_app(app: AppHandle) {
 pub fn open_main_window(app: AppHandle, view: String) -> Result<(), String> {
     if let Some(main_win) = app.get_webview_window("main") {
         let hwnd = get_current_foreground_hwnd();
-        *LAST_FOREGROUND_HWND.lock().unwrap() = Some(hwnd);
+        if is_valid_user_window(hwnd) {
+            *LAST_FOREGROUND_HWND.lock().unwrap() = Some(hwnd);
+        }
         
         let _ = main_win.show();
         if !crate::HAS_SHOWN_ONCE.load(std::sync::atomic::Ordering::Relaxed) {

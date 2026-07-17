@@ -43,9 +43,14 @@ export function PromptCard({
     setIsDeleting(false);
   };
 
+  const handleCardClick = () => {
+    onSelect();
+    onPaste();
+  };
+
   return (
     <div
-      onClick={onSelect}
+      onClick={handleCardClick}
       className={`relative group w-full flex flex-col p-3 rounded-md border text-left cursor-pointer transition-all duration-100 ${
         isSelected
           ? 'border-accent bg-accent-dim/15'

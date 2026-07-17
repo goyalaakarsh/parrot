@@ -83,13 +83,13 @@ export default function App() {
   // Keyboard navigation handlers
   const handleKeyboardEnter = (index: number) => {
     if (filteredPrompts[index]) {
-      handleCopyPrompt(filteredPrompts[index]);
+      handlePastePrompt(filteredPrompts[index]);
     }
   };
 
   const handleKeyboardShiftEnter = (index: number) => {
     if (filteredPrompts[index]) {
-      handlePastePrompt(filteredPrompts[index]);
+      handleCopyPrompt(filteredPrompts[index]);
     }
   };
 

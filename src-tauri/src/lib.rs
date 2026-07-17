@@ -81,7 +81,9 @@ pub fn run() {
                                     } else if !just_hidden {
                                         // Capture foreground HWND immediately before window takes focus
                                         let hwnd = get_current_foreground_hwnd();
-                                        *LAST_FOREGROUND_HWND.lock().unwrap() = Some(hwnd);
+                                        if crate::paste::is_valid_user_window(hwnd) {
+                                            *LAST_FOREGROUND_HWND.lock().unwrap() = Some(hwnd);
+                                        }
                                         
                                         let _ = window.show();
                                         
