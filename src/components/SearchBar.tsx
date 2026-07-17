@@ -1,14 +1,15 @@
 import { useRef, useEffect } from 'react';
-import { Settings } from 'lucide-react';
+import { Plus, Settings } from 'lucide-react';
 
 interface SearchBarProps {
   value: string;
   onChange: (val: string) => void;
   onOpenSettings: () => void;
+  onAddClick: () => void;
   isFocused: boolean;
 }
 
-export function SearchBar({ value, onChange, onOpenSettings, isFocused }: SearchBarProps) {
+export function SearchBar({ value, onChange, onOpenSettings, onAddClick, isFocused }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -40,6 +41,14 @@ export function SearchBar({ value, onChange, onOpenSettings, isFocused }: Search
           </button>
         )}
       </div>
+      <button
+        onClick={onAddClick}
+        title="Add prompt (Ctrl+N)"
+        aria-label="Add prompt"
+        className="flex items-center justify-center w-9 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-all duration-100"
+      >
+        <Plus size={16} aria-hidden="true" />
+      </button>
       <button
         onClick={onOpenSettings}
         title="Settings (Ctrl+,)"

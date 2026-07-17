@@ -166,7 +166,7 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
               value={isCapturing ? 'Press keys...' : shortcut}
               onClick={() => setIsCapturing(true)}
               aria-label="Global shortcut key combination"
-              aria-description="Click to capture a new keyboard shortcut"
+              aria-describedby="shortcut-hint"
               className={`w-full h-9 px-3 text-[13px] rounded-md border bg-surface cursor-pointer text-left transition-all ${
                 isCapturing
                   ? 'border-accent text-accent animate-pulse ring-1 ring-accent'
@@ -174,7 +174,7 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
               }`}
             />
             {!isCapturing && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">
+              <span id="shortcut-hint" className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">
                 Click to edit
               </span>
             )}

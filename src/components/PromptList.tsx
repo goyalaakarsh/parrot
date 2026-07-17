@@ -1,9 +1,11 @@
-import { Plus, MessageSquarePlus } from 'lucide-react';
+import { Plus, MessageSquarePlus, Search } from 'lucide-react';
 import { Prompt } from '../types';
 import { PromptCard } from './PromptCard';
 
 interface PromptListProps {
   prompts: Prompt[];
+  totalCount: number;
+  searchQuery: string;
   selectedIndex: number;
   onSelectPrompt: (index: number) => void;
   onEditPrompt: (prompt: Prompt) => void;
@@ -15,6 +17,8 @@ interface PromptListProps {
 
 export function PromptList({
   prompts,
+  totalCount,
+  searchQuery,
   selectedIndex,
   onSelectPrompt,
   onEditPrompt,
@@ -23,9 +27,9 @@ export function PromptList({
   onPastePrompt,
   onAddClick,
 }: PromptListProps) {
-  if (prompts.length === 0) {
+  if (prompts.length === 0 && !searchQuery) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+      <div role="status" aria-label="No prompts" className="flex-1 flex flex-col items-center justify-center p-6 text-center">
         <div className="w-12 h-12 rounded-full bg-accent-dim/20 border border-accent/20 flex items-center justify-center text-accent mb-3">
           <MessageSquarePlus size={22} aria-hidden="true" />
         </div>
@@ -46,6 +50,12 @@ export function PromptList({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
+      {searchQuery && (
+        <div className="flex items-center gap-1.5 px-1 mb-2 text-[10px] text-muted">
+          <Search size={10} aria-hidden="true" />
+          <span>{prompts.length} of {totalCount} prompts</span>
+        </div>
+      )}
       <div role="listbox" aria-label="Prompts" className="flex-1 overflow-y-auto pr-1.5 space-y-1 mb-2">
         {prompts.map((prompt, idx) => (
           <PromptCard

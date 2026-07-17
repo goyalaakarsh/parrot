@@ -19,21 +19,13 @@
 
 ## Features
 
-- **System Tray Residency**: Runs quietly in your system tray. 
-  - **Left-Click**: Toggles the main application popup.
-  - **Right-Click**: Launches a beautifully designed, custom dark-themed context menu (avoiding the default, dated Windows context menus) to quickly Open, access Settings, or Quit.
-- **Persistent Relocated Position**: Drag the window from any empty space to position it anywhere on your screen. The application remembers your new layout and persists it for all subsequent shows.
-- **Global Shortcut Trigger**: Press `Ctrl+Shift+Space` (or your configured custom shortcut) from any application to toggle the window instantly.
-- **Inline Typing Trigger**: Type `/parrot:"your-search-query"` inside *any* text editor or browser input. Parrot will slide open near the bottom-right. Selecting a snippet automatically erases the trigger prefix and pastes your content.
-- **Auto-Paste Flow**: Intelligently restores focus to your previous active application, waits a brief 150ms to ensure OS window focus transition, and pastes the snippet directly using simulated key strokes.
-- **Custom Keyboard Settings**: Modify and save your custom global shortcut inside the settings panel. Changes apply instantly without requiring an app restart.
-- **Launch at Startup**: Starts automatically on Windows login. Configurable directly in the Settings menu (handles dev-mode registry constraints gracefully).
-- **Local Storage**: Fully offline and stored as structured JSON under `{app_data_dir}/parrot/`â€”no databases, no network calls, keeping your prompts completely private.
-- **Keyboard-First Navigation**:
-  - `Arrow Up` / `Arrow Down` to navigate cards.
-  - `Enter` to copy text and close.
-  - `Shift+Enter` to copy and auto-paste directly into your last active window.
-  - `Escape` to close/hide.
+- **System Tray Residency**: Runs quietly in your system tray. Left-click toggles the popup; right-click opens a custom dark-themed context menu.
+- **Persistent Relocated Position**: Drag the window from any empty space. Parrot remembers your position.
+- **Global Shortcut Trigger**: Press `Ctrl+Shift+Space` (configurable) from any application to toggle the window.
+- **Inline Typing Trigger**: Type `/parrot:"your-search-query"` inside any text field. Parrot opens and pastes your selection automatically.
+- **Auto-Paste Flow**: Intelligently restores focus to your previous window and pastes using simulated keystrokes.
+- **Keyboard-First Navigation**: Every action has a keyboard shortcut — no mouse required.
+- **Local Storage**: Fully offline. Data stored as structured JSON — no databases, no network calls.
 
 ---
 
@@ -41,11 +33,25 @@
 
 | Shortcut | Action |
 |---|---|
-| `Ctrl+Shift+Space` | Toggle Parrot popup (Default, customizable) |
+| `Ctrl+Shift+Space` | Toggle Parrot popup (default, customizable in Settings) |
 | `Arrow Up` / `Arrow Down` | Navigate prompt cards |
-| `Enter` | Copy text of selected prompt to clipboard and close window |
-| `Shift+Enter` | Copy + Auto-paste selected prompt directly into previous active window |
-| `Escape` | Close/hide window |
+| `Enter` | Auto-paste selected prompt into previous active window |
+| `Shift+Enter` | Copy selected prompt to clipboard (without pasting) |
+| `Escape` | Close window / Cancel add/edit/delete / Go back from Settings |
+| `Ctrl+N` | Open Add Prompt panel |
+| `Ctrl+E` | Edit selected prompt |
+| `Ctrl+D` or `Delete` | Delete selected prompt (Enter to confirm, Escape to cancel) |
+| `Ctrl+,` | Open Settings |
+| `Ctrl+Enter` | Save prompt in Add/Edit panel |
+| `Arrow Left` / `Arrow Right` | Navigate Cancel/Delete buttons in confirmation |
+| `Tab` | Move focus between interactive elements |
+
+**Tray Menu (right-click tray icon):**
+| Shortcut | Action |
+|---|---|
+| `Arrow Up` / `Arrow Down` | Navigate menu items |
+| `Enter` | Select menu item |
+| `Escape` | Close tray menu |
 
 ---
 
@@ -66,7 +72,7 @@
 
 ### Local Development
 
-1. Clone the repository and navigate to the project directory:
+1. Clone the repository:
    ```bash
    git clone https://github.com/goyalaakarsh/parrot.git
    cd parrot
@@ -75,22 +81,38 @@
    ```bash
    npm install
    ```
-3. Run the application in development mode:
+3. Run in development mode:
    ```bash
    npm run tauri dev
    ```
 
 ### Production Packaging
 
-Compile the React frontend assets and package the production executable:
 ```bash
 npm run tauri build
 ```
-The final installer and standalone executable will be located in:
-`src-tauri/target/release/bundle/`
+
+The installer will be in `src-tauri/target/release/bundle/`.
+
+---
+
+## Accessibility
+
+Parrot is built with accessibility as a core principle:
+- Full keyboard navigation with visible focus rings
+- ARIA roles (`listbox`, `option`, `menu`, `menuitem`, `switch`, `alert`)
+- Screen reader support with `aria-label`, `aria-selected`, `aria-checked`
+- `prefers-reduced-motion` support
+- Semantic HTML with proper label associations
+
+---
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+MIT License. See [LICENSE](LICENSE) for details.

@@ -10,7 +10,7 @@ export function Toast({ message, type = 'success', onClose }: ToastProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
-    }, 1500);
+    }, 2500);
     return () => clearTimeout(timer);
   }, [onClose]);
 

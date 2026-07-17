@@ -190,15 +190,18 @@ export default function App() {
             value={searchQuery}
             onChange={setSearchQuery}
             onOpenSettings={() => setView('settings')}
+            onAddClick={() => setView('add')}
             isFocused={searchFocused}
           />
           {loading ? (
-            <div className="flex-1 flex items-center justify-center">
+            <div role="status" className="flex-1 flex items-center justify-center">
               <span className="text-xs text-muted">Loading prompts...</span>
             </div>
           ) : (
             <PromptList
               prompts={filteredPrompts}
+              totalCount={prompts.length}
+              searchQuery={searchQuery}
               selectedIndex={selectedIndex}
               onSelectPrompt={setSelectedIndex}
               onEditPrompt={(prompt) => {
