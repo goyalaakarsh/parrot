@@ -20,7 +20,7 @@ export function AboutPanel({ onBack }: AboutPanelProps) {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center shadow-inner">
+        <div className="w-16 h-16 rounded-2xl  flex items-center justify-center shadow-inner">
           <img
             src="/parrot-icon-transparent.png"
             alt="Parrot"
@@ -49,10 +49,6 @@ export function AboutPanel({ onBack }: AboutPanelProps) {
             <Github size={11} />
             <span>Parrot</span>
           </div>
-        </div>
-
-        <div className="text-[9px] text-muted/60 mt-auto pt-4 border-t border-border w-full text-center">
-          Built with Tauri v2 + React
         </div>
       </div>
     </div>

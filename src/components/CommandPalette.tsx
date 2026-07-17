@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { ArrowLeft, Command } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 interface Command {
   id: string;
@@ -54,7 +54,7 @@ export function CommandPalette({ onClose, commands }: CommandPaletteProps) {
   }, [filtered]);
 
   return (
-    <div className="flex-1 flex flex-col p-1 select-text">
+    <div className="flex-1 flex flex-col p-1 select-text min-h-0">
       <div className="flex items-center gap-2 border-b border-border pb-2.5 mb-2">
         <button
           onClick={onClose}
@@ -64,7 +64,6 @@ export function CommandPalette({ onClose, commands }: CommandPaletteProps) {
           <ArrowLeft size={16} aria-hidden="true" />
           <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none">Esc</kbd>
         </button>
-        <Command size={14} className="text-accent" aria-hidden="true" />
         <h2 className="text-sm font-semibold text-primary">Commands</h2>
       </div>
 
@@ -79,7 +78,7 @@ export function CommandPalette({ onClose, commands }: CommandPaletteProps) {
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         {categories.length === 0 && (
           <div className="py-6 text-xs text-muted text-center">No commands found</div>
         )}
