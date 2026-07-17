@@ -18,6 +18,22 @@
 
 ---
 
+<p align="center">
+  <img src="public/screenshots/clipboard-main.png" alt="Parrot - Main View" width="400" />
+</p>
+
+<p align="center">
+  <img src="public/screenshots/search.png" alt="Parrot - Search" width="400" />&nbsp;&nbsp;
+  <img src="public/screenshots/add-new.png" alt="Parrot - Add Prompt" width="400" />
+</p>
+
+<p align="center">
+  <img src="public/screenshots/settings.png" alt="Parrot - Settings" width="400" />&nbsp;&nbsp;
+  <img src="public/screenshots/system-tray-view.png" alt="Parrot - System Tray" width="400" />
+</p>
+
+---
+
 ## Features
 
 - **System Tray Residency**: Runs quietly in your system tray. Left-click toggles the popup; right-click opens a custom dark-themed context menu.
