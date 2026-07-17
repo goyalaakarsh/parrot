@@ -50,14 +50,14 @@ export function PromptList({
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0">
       {searchQuery && (
-        <div className="flex items-center gap-1.5 px-1 mb-2 text-[10px] text-muted">
+        <div className="flex items-center gap-1.5 px-1 mb-2 text-[10px] text-muted shrink-0">
           <Search size={10} aria-hidden="true" />
           <span>{prompts.length} of {totalCount} prompts</span>
         </div>
       )}
-      <div role="listbox" aria-label="Prompts" className="flex-1 overflow-y-auto pr-1.5 space-y-1 mb-2">
+      <div role="listbox" aria-label="Prompts" className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-1">
         {prompts.map((prompt, idx) => (
           <PromptCard
             key={prompt.id}
@@ -70,17 +70,16 @@ export function PromptList({
             onPaste={() => onPastePrompt(prompt)}
           />
         ))}
-
-        <button
-          onClick={onAddClick}
-          aria-label="Add new prompt"
-          className="w-full flex items-center justify-center gap-2 p-3.5 rounded-md border border-dashed border-border hover:border-accent hover:bg-accent-dim/5 text-muted hover:text-accent transition-all duration-100 mt-2"
-        >
-          <Plus size={14} aria-hidden="true" />
-          <span className="text-[12px] font-semibold">Add Prompt</span>
-          <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none ml-1 shadow-sm">Ctrl+N</kbd>
-        </button>
       </div>
+      <button
+        onClick={onAddClick}
+        aria-label="Add new prompt"
+        className="shrink-0 w-full flex items-center justify-center gap-2 py-2 mt-1.5 text-muted hover:text-accent text-xs font-semibold transition-all duration-100"
+      >
+        <Plus size={13} aria-hidden="true" />
+        <span>Add Prompt</span>
+        <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Ctrl+N</kbd>
+      </button>
     </div>
   );
 }

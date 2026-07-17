@@ -85,24 +85,7 @@ export function PromptCard({
     }
   }, [isDeleting]);
 
-  const lines = prompt.text.split('\n');
-  
-  const hasCustomTitle = !!(prompt.title && 
-    prompt.title !== lines[0].trim() && 
-    prompt.title !== prompt.text.trim());
-
-  let displayTitle: string | null = null;
-  let displayDescription: string = '';
-
-  if (hasCustomTitle) {
-    displayTitle = prompt.title;
-    displayDescription = prompt.text;
-  } else if (lines.length > 1) {
-    displayTitle = lines[0].trim();
-    displayDescription = lines.slice(1).join('\n').trim();
-  } else {
-    displayDescription = prompt.text.trim();
-  }
+  const displayDescription = prompt.text.trim();
 
   const truncatedDescription = isSelected
     ? (displayDescription.length > 500 ? `${displayDescription.substring(0, 500)}...` : displayDescription)
@@ -172,13 +155,6 @@ export function PromptCard({
         </div>
       ) : (
         <>
-          {displayTitle && (
-            <div className="w-full text-left">
-              <span className="text-[13px] font-semibold block text-primary">
-                {displayTitle}
-              </span>
-            </div>
-          )}
 
           {displayDescription && (
             <p className={`text-xs text-muted mt-1 break-words whitespace-pre-line text-left ${
