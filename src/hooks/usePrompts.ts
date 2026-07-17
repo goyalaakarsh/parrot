@@ -97,12 +97,27 @@ export function usePrompts(showToast: (msg: string, type?: 'success' | 'error') 
     }
   }, [prompts, fetchPrompts, showToast]);
 
+  const markPromptUsed = useCallback(async (id: string) => {
+    const now = new Date().toISOString();
+    const updatedPrompts = prompts.map(p =>
+      p.id === id ? { ...p, lastUsedAt: now } : p
+    );
+    setPrompts(updatedPrompts);
+    try {
+      await invoke('save_prompts', { prompts: updatedPrompts });
+    } catch (err: any) {
+      console.error('Failed to update lastUsedAt:', err);
+      fetchPrompts();
+    }
+  }, [prompts, fetchPrompts]);
+
   return {
     prompts,
     loading,
     addPrompt,
     updatePrompt,
     deletePrompt,
+    markPromptUsed,
     refresh: fetchPrompts,
   };
 }

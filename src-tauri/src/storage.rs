@@ -12,6 +12,8 @@ pub struct Prompt {
     pub text: String,
     pub tags: Vec<String>,
     pub created_at: String,
+    #[serde(default)]
+    pub last_used_at: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -9,6 +9,7 @@ import { PromptList } from './components/PromptList';
 import { AddEditPanel } from './components/AddEditPanel';
 import { SettingsPanel } from './components/SettingsPanel';
 import { TrayMenuPanel } from './components/TrayMenuPanel';
+import { CommandPalette } from './components/CommandPalette';
 import { Toast } from './components/Toast';
 import { Onboarding } from './components/Onboarding';
 
@@ -22,6 +23,7 @@ export default function App() {
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(true);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
 
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export default function App() {
   }, []);
 
   // CRUD hooks
-  const { prompts, loading, addPrompt, updatePrompt, deletePrompt } = usePrompts(showToast);
+  const { prompts, loading, addPrompt, updatePrompt, deletePrompt, markPromptUsed } = usePrompts(showToast);
 
   // Search filter hook
   const filteredPrompts = useSearch(prompts, searchQuery);
@@ -53,6 +55,7 @@ export default function App() {
   const handleCopyPrompt = async (prompt: Prompt) => {
     try {
       await writeText(prompt.text);
+      markPromptUsed(prompt.id);
       showToast('Copied!', 'success');
       
       setTimeout(async () => {
@@ -70,6 +73,7 @@ export default function App() {
     try {
       const hwnd = await invoke<number>('get_foreground_hwnd');
       await writeText(prompt.text);
+      markPromptUsed(prompt.id);
       const win = getCurrentWindow();
       await win.hide();
       await invoke('paste_to_previous_window', { hwnd });
@@ -106,8 +110,75 @@ export default function App() {
     onEscape: handleKeyboardEscape,
     onCtrlN: () => setView('add'),
     onCtrlComma: () => setView('settings'),
+    onCtrlK: () => setShowCommandPalette(true),
     isActive: view === 'list' && !loading,
   });
+
+  // Commands for the command palette
+  const commands = useMemo(() => [
+    {
+      id: 'open-prompts',
+      label: 'Open Prompts',
+      category: 'Navigation',
+      action: () => { setView('list'); setSearchFocused(true); },
+      enabled: true,
+    },
+    {
+      id: 'open-settings',
+      label: 'Open Settings',
+      category: 'Navigation',
+      shortcut: 'Ctrl+,',
+      action: () => setView('settings'),
+      enabled: true,
+    },
+    {
+      id: 'add-prompt',
+      label: 'Add Prompt',
+      category: 'Navigation',
+      shortcut: 'Ctrl+N',
+      action: () => setView('add'),
+      enabled: true,
+    },
+    {
+      id: 'copy-selected',
+      label: 'Copy Selected',
+      category: 'Actions',
+      shortcut: 'Shift+Enter',
+      action: () => {
+        if (filteredPrompts[selectedIndex]) {
+          handleCopyPrompt(filteredPrompts[selectedIndex]);
+        }
+      },
+      enabled: filteredPrompts.length > 0,
+    },
+    {
+      id: 'paste-selected',
+      label: 'Paste Selected',
+      category: 'Actions',
+      shortcut: 'Enter',
+      action: () => {
+        if (filteredPrompts[selectedIndex]) {
+          handlePastePrompt(filteredPrompts[selectedIndex]);
+        }
+      },
+      enabled: filteredPrompts.length > 0,
+    },
+    {
+      id: 'toggle-palette',
+      label: 'Command Palette',
+      category: 'App',
+      shortcut: 'Ctrl+K',
+      action: () => setShowCommandPalette(true),
+      enabled: true,
+    },
+    {
+      id: 'quit',
+      label: 'Quit Parrot',
+      category: 'App',
+      action: () => { invoke('exit_app'); },
+      enabled: true,
+    },
+  ], [filteredPrompts, selectedIndex, handleCopyPrompt, handlePastePrompt]);
 
   // Listen for Tauri events
   useEffect(() => {
@@ -243,6 +314,13 @@ export default function App() {
             showToast={showToast}
           />
         </>
+      )}
+
+      {showCommandPalette && (
+        <CommandPalette
+          onClose={() => setShowCommandPalette(false)}
+          commands={commands}
+        />
       )}
     </div>
   );

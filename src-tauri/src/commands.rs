@@ -69,6 +69,18 @@ pub fn paste_to_previous_window(hwnd: isize) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn get_recent_prompts(app: AppHandle) -> Result<Vec<Prompt>, String> {
+    let mut prompts = storage::load_prompts(&app)?;
+    prompts.sort_by(|a, b| {
+        let a_time = a.last_used_at.as_deref().unwrap_or("0");
+        let b_time = b.last_used_at.as_deref().unwrap_or("0");
+        b_time.cmp(a_time)
+    });
+    prompts.truncate(3);
+    Ok(prompts)
+}
+
+#[tauri::command]
 pub fn check_first_run(app: AppHandle) -> Result<bool, String> {
     let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     let marker = data_dir.join(".parrot-onboarded");
