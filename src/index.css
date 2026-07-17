@@ -8,7 +8,6 @@
   }
 }
 
-/* Custom thin scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -27,20 +26,25 @@
   background: #10b981;
 }
 
-/* Animation utilities for our toast and transitions */
-@keyframes slideUp {
-  from {
-    transform: translateY(12px);
-    opacity: 0;
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes slideUp {
+    from {
+      transform: translateY(12px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
-  to {
-    transform: translateY(0);
-    opacity: 1;
+
+  .animate-slide-up {
+    animation: slideUp 120ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }
 
 .animate-slide-up {
-  animation: slideUp 120ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 1;
 }
 
 .custom-blur-bg {

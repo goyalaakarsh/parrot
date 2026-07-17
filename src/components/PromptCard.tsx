@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Edit2, Trash2, Clipboard, CornerDownLeft, AlertCircle } from 'lucide-react';
 import { Prompt } from '../types';
 
@@ -22,16 +22,16 @@ export function PromptCard({
   onPaste,
 }: PromptCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const deleteRef = useRef<HTMLButtonElement>(null);
 
-  // Keyboard shortcut listener for active prompt card
   useEffect(() => {
     if (!isSelected) {
-      setIsDeleting(false); // Reset delete state if selection changes
+      setIsDeleting(false);
       return;
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in textareas (e.g. edit prompt view)
       if (document.activeElement?.tagName === 'TEXTAREA') {
         return;
       }
@@ -50,6 +50,16 @@ export function PromptCard({
           setIsDeleting(false);
           return;
         }
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          cancelRef.current?.focus();
+          return;
+        }
+        if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          deleteRef.current?.focus();
+          return;
+        }
       }
 
       if (e.key === 'e' && (e.ctrlKey || e.metaKey)) {
@@ -66,11 +76,17 @@ export function PromptCard({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSelected, isDeleting, onEdit]);
+  }, [isSelected, isDeleting, onEdit, onDelete]);
+
+  // Auto-focus Delete button when delete confirmation appears
+  useEffect(() => {
+    if (isDeleting && deleteRef.current) {
+      deleteRef.current.focus();
+    }
+  }, [isDeleting]);
 
   const lines = prompt.text.split('\n');
   
-  // Check if there is a custom title (different from auto-generated first line/full text)
   const hasCustomTitle = !!(prompt.title && 
     prompt.title !== lines[0].trim() && 
     prompt.title !== prompt.text.trim());
@@ -85,7 +101,6 @@ export function PromptCard({
     displayTitle = lines[0].trim();
     displayDescription = lines.slice(1).join('\n').trim();
   } else {
-    // Single line prompt: no separate title header
     displayDescription = prompt.text.trim();
   }
 
@@ -116,7 +131,15 @@ export function PromptCard({
 
   return (
     <div
+      role="option"
+      aria-selected={isSelected}
       onClick={handleCardClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
       className={`relative group w-full flex flex-col p-3 rounded-md border text-left cursor-pointer transition-all duration-100 ${
         isSelected
           ? 'border-accent bg-accent-dim/15'
@@ -124,21 +147,22 @@ export function PromptCard({
       }`}
     >
 
-
       {isDeleting ? (
         <div className="flex flex-col gap-2 w-full animate-slide-up">
           <div className="flex items-center gap-1.5 text-danger text-xs font-semibold">
-            <AlertCircle size={14} />
+            <AlertCircle size={14} aria-hidden="true" />
             <span>Delete this prompt?</span>
           </div>
           <div className="flex gap-2 justify-end">
             <button
+              ref={cancelRef}
               onClick={handleCancelDelete}
               className="px-2 py-1 text-xs rounded bg-surface-hover border border-border text-muted hover:text-primary transition-all"
             >
               Cancel
             </button>
             <button
+              ref={deleteRef}
               onClick={handleConfirmDelete}
               className="px-2 py-1 text-xs rounded bg-danger/20 border border-danger/30 text-danger hover:bg-danger/30 transition-all"
             >
@@ -177,7 +201,6 @@ export function PromptCard({
             </div>
           )}
 
-          {/* Action buttons row (slides down and fades in on hover/selection) */}
           <div className={`flex items-center justify-end gap-1.5 w-full overflow-hidden transition-all duration-100 ${
             isSelected 
               ? 'h-6 opacity-100 mt-2.5 pt-0.5' 
@@ -189,9 +212,11 @@ export function PromptCard({
                 onCopy();
               }}
               title="Copy (Shift+Enter)"
-              className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none"
+              aria-label="Copy (Shift+Enter)"
+              tabIndex={isSelected ? 0 : -1}
+              className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
             >
-              <Clipboard size={13} />
+              <Clipboard size={13} aria-hidden="true" />
               {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Shift+Enter</kbd>}
             </button>
             <button
@@ -200,9 +225,11 @@ export function PromptCard({
                 onPaste();
               }}
               title="Auto-insert (Enter)"
-              className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none"
+              aria-label="Paste (Enter)"
+              tabIndex={isSelected ? 0 : -1}
+              className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
             >
-              <CornerDownLeft size={13} />
+              <CornerDownLeft size={13} aria-hidden="true" />
               {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Enter</kbd>}
             </button>
             <button
@@ -211,17 +238,21 @@ export function PromptCard({
                 onEdit();
               }}
               title="Edit (Ctrl+E)"
-              className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none"
+              aria-label="Edit (Ctrl+E)"
+              tabIndex={isSelected ? 0 : -1}
+              className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
             >
-              <Edit2 size={13} />
+              <Edit2 size={13} aria-hidden="true" />
               {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Ctrl+E</kbd>}
             </button>
             <button
               onClick={handleDeleteClick}
               title="Delete (Delete)"
-              className="p-1 rounded text-muted hover:text-danger hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none"
+              aria-label="Delete (Delete)"
+              tabIndex={isSelected ? 0 : -1}
+              className="p-1 rounded text-muted hover:text-danger hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
             >
-              <Trash2 size={13} />
+              <Trash2 size={13} aria-hidden="true" />
               {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Delete</kbd>}
             </button>
           </div>

@@ -16,7 +16,6 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Load current settings from backend and plugin status
   useEffect(() => {
     async function loadSettings() {
       try {
@@ -24,7 +23,6 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
         const savedSettings = await invoke<Settings>('get_settings');
         setShortcut(savedSettings.globalShortcut);
 
-        // Check autostart status from plugin
         const autostartEnabled = await isEnabled();
         setAutostart(autostartEnabled);
       } catch (err: any) {
@@ -37,6 +35,18 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
 
     loadSettings();
   }, [showToast]);
+
+  // Wire Escape to go back (only when not capturing)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isCapturing) {
+        e.preventDefault();
+        onBack();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onBack, isCapturing]);
 
   // Capture keyboard combination
   useEffect(() => {
@@ -58,24 +68,22 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
         keys.push('Alt');
       }
 
-      // Detect the main key
       const key = e.key.toUpperCase();
       if (key !== 'CONTROL' && key !== 'SHIFT' && key !== 'ALT' && key !== 'META') {
         let keyName = e.key;
         if (e.code === 'Space') {
           keyName = 'Space';
         } else if (e.code.startsWith('Key')) {
-          keyName = e.code.substring(3); // "KeyS" -> "S"
+          keyName = e.code.substring(3);
         } else if (e.code.startsWith('Digit')) {
-          keyName = e.code.substring(5); // "Digit1" -> "1"
+          keyName = e.code.substring(5);
         } else {
-          // Normalize first letter uppercase
           keyName = keyName.charAt(0).toUpperCase() + keyName.slice(1);
         }
 
         keys.push(keyName);
         setShortcut(keys.join('+'));
-        setIsCapturing(false); // Done capturing
+        setIsCapturing(false);
       }
     };
 
@@ -83,10 +91,20 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [isCapturing]);
 
+  const toggleAutostart = () => {
+    setAutostart((prev) => !prev);
+  };
+
+  const handleToggleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      toggleAutostart();
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      // 1. Save settings in JSON config file (re-registers shortcut on Rust side)
       await invoke('save_settings', {
         settings: {
           globalShortcut: shortcut,
@@ -94,7 +112,6 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
         },
       });
 
-      // 2. Enable/disable autostart via plugin
       try {
         if (autostart) {
           await enable();
@@ -126,21 +143,20 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
   return (
     <div className="flex-1 flex flex-col justify-between p-1 select-text">
       <div className="space-y-5">
-        {/* Header */}
         <div className="flex items-center gap-2 border-b border-border pb-2.5">
           <button
             onClick={onBack}
+            aria-label="Back to prompts"
             className="p-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-all"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={16} aria-hidden="true" />
           </button>
           <h2 className="text-sm font-semibold text-primary">Settings</h2>
         </div>
 
-        {/* Global Shortcut Option */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted">
-            <Keyboard size={12} />
+            <Keyboard size={12} aria-hidden="true" />
             <span>GLOBAL SHORTCUT</span>
           </div>
           <div className="relative">
@@ -149,6 +165,8 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
               readOnly
               value={isCapturing ? 'Press keys...' : shortcut}
               onClick={() => setIsCapturing(true)}
+              aria-label="Global shortcut key combination"
+              aria-description="Click to capture a new keyboard shortcut"
               className={`w-full h-9 px-3 text-[13px] rounded-md border bg-surface cursor-pointer text-left transition-all ${
                 isCapturing
                   ? 'border-accent text-accent animate-pulse ring-1 ring-accent'
@@ -163,17 +181,20 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
           </div>
         </div>
 
-        {/* Launch at Startup Option */}
         <div className="flex items-center justify-between p-3 rounded-md border border-border bg-surface">
           <div className="flex items-center gap-2">
-            <Power size={14} className="text-muted" />
+            <Power size={14} className="text-muted" aria-hidden="true" />
             <div className="flex flex-col">
               <span className="text-xs font-semibold text-primary">Launch at Startup</span>
               <span className="text-[10px] text-muted">Start Parrot on Windows log-in</span>
             </div>
           </div>
           <button
-            onClick={() => setAutostart(!autostart)}
+            onClick={toggleAutostart}
+            onKeyDown={handleToggleKeyDown}
+            role="switch"
+            aria-checked={autostart}
+            aria-label="Toggle launch at startup"
             className={`w-9 h-5 rounded-full relative transition-colors duration-100 ${
               autostart ? 'bg-accent' : 'bg-border'
             }`}
@@ -187,7 +208,6 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
         </div>
       </div>
 
-      {/* Save Button */}
       <button
         onClick={handleSave}
         disabled={saving}

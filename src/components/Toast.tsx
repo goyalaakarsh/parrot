@@ -10,12 +10,12 @@ export function Toast({ message, type = 'success', onClose }: ToastProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
-    }, 1500); // 1.5 seconds auto-dismiss
+    }, 1500);
     return () => clearTimeout(timer);
   }, [onClose]);
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[340px] animate-slide-up">
+    <div role="alert" className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[340px] animate-slide-up">
       <div className={`px-4 py-2.5 rounded-lg border text-sm shadow-xl flex items-center gap-2 custom-blur-bg ${
         type === 'error' 
           ? 'border-danger/30 text-danger bg-danger/10' 

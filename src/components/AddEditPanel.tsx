@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Prompt } from '../types';
 
 interface AddEditPanelProps {
-  prompt?: Prompt | null; // If null, we are adding a prompt
+  prompt?: Prompt | null;
   onSave: (title: string, text: string, tags: string[]) => Promise<boolean>;
   onCancel: () => void;
 }
@@ -15,7 +15,6 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Pre-fill fields if we are editing an existing prompt
   useEffect(() => {
     if (prompt) {
       setText(prompt.text);
@@ -35,7 +34,18 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
     }
   }, [text]);
 
-  // Real-time parsed tags to display as preview pills
+  // Wire Escape to cancel
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onCancel();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onCancel]);
+
   const parsedTags = tagsInput
     .split(',')
     .map((tag) => tag.trim().toLowerCase())
@@ -81,40 +91,41 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
         </h2>
 
         {error && (
-          <div className="px-3 py-2 rounded bg-danger/10 border border-danger/20 text-danger text-xs">
+          <div role="alert" className="px-3 py-2 rounded bg-danger/10 border border-danger/20 text-danger text-xs">
             {error}
           </div>
         )}
 
-        {/* Text Textarea */}
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-semibold text-muted">TEXT</label>
+          <label htmlFor="prompt-text" className="text-[11px] font-semibold text-muted">TEXT</label>
           <textarea
             ref={textareaRef}
+            id="prompt-text"
             rows={4}
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Type or paste your text template here..."
+            aria-label="Prompt text"
             className="px-3 py-2 text-[13px] rounded-md bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all resize-none min-h-[90px]"
             required
             autoFocus
           />
         </div>
 
-        {/* Tags Input */}
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-semibold text-muted">TAGS (comma-separated)</label>
+          <label htmlFor="prompt-tags" className="text-[11px] font-semibold text-muted">TAGS (comma-separated)</label>
           <input
+            id="prompt-tags"
             type="text"
             value={tagsInput}
             onChange={(e) => setTagsInput(e.target.value)}
             placeholder="e.g. react, code-review, helper"
+            aria-label="Tags, comma separated"
             className="h-9 px-3 text-[13px] rounded-md bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
           />
           
-          {/* Real-time Tags Pills Preview */}
           {parsedTags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1.5">
+            <div className="flex flex-wrap gap-1 mt-1.5" aria-live="polite" aria-atomic="true">
               {parsedTags.map((tag, i) => (
                 <span
                   key={`${tag}-${i}`}
@@ -128,7 +139,6 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex items-center gap-2 mt-4 border-t border-border pt-3">
         <button
           type="button"

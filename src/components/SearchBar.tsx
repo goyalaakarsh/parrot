@@ -11,7 +11,6 @@ interface SearchBarProps {
 export function SearchBar({ value, onChange, onOpenSettings, isFocused }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-focus search input when it mounts or when isFocused is triggered
   useEffect(() => {
     if (isFocused && inputRef.current) {
       inputRef.current.focus();
@@ -28,11 +27,13 @@ export function SearchBar({ value, onChange, onOpenSettings, isFocused }: Search
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Search prompts or tags..."
+          aria-label="Search prompts"
           className="w-full h-9 px-3 text-sm font-medium rounded-lg bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all duration-100"
         />
         {value && (
           <button
             onClick={() => onChange('')}
+            aria-label="Clear search"
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary text-xs"
           >
             Clear
@@ -42,9 +43,10 @@ export function SearchBar({ value, onChange, onOpenSettings, isFocused }: Search
       <button
         onClick={onOpenSettings}
         title="Settings (Ctrl+,)"
+        aria-label="Settings"
         className="flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-all duration-100"
       >
-        <Settings size={15} />
+        <Settings size={15} aria-hidden="true" />
         <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium leading-none">Ctrl+,</kbd>
       </button>
     </div>

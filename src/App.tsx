@@ -42,13 +42,19 @@ export default function App() {
   // Search filter hook
   const filteredPrompts = useSearch(prompts, searchQuery);
 
+  // Focus search bar when returning to list view
+  useEffect(() => {
+    if (view === 'list') {
+      setSearchFocused(true);
+    }
+  }, [view]);
+
   // Copy Only Flow
   const handleCopyPrompt = async (prompt: Prompt) => {
     try {
       await writeText(prompt.text);
       showToast('Copied!', 'success');
       
-      // Hide window after a tiny delay so the toast transitions nicely
       setTimeout(async () => {
         const win = getCurrentWindow();
         await win.hide();
@@ -62,17 +68,10 @@ export default function App() {
   // Auto-Paste Flow
   const handlePastePrompt = async (prompt: Prompt) => {
     try {
-      // 1. Get captured HWND
       const hwnd = await invoke<number>('get_foreground_hwnd');
-      
-      // 2. Copy text to clipboard
       await writeText(prompt.text);
-      
-      // 3. Hide window immediately
       const win = getCurrentWindow();
       await win.hide();
-      
-      // 4. Call Rust to restore focus, sleep, and paste
       await invoke('paste_to_previous_window', { hwnd });
     } catch (err: any) {
       console.error('Auto-paste failed:', err);
@@ -96,8 +95,6 @@ export default function App() {
   const handleKeyboardEscape = async () => {
     const win = getCurrentWindow();
     await win.hide();
-    
-    // Deactivate hook in Rust
     await invoke('paste_to_previous_window', { hwnd: 0 });
   };
 
@@ -183,7 +180,6 @@ export default function App() {
 
   return (
     <div data-tauri-drag-region className="w-full h-full bg-background border border-border rounded-lg overflow-hidden flex flex-col p-3 select-none">
-      {/* Toast popup */}
       {toastMessage && (
         <Toast message={toastMessage} type={toastType} onClose={hideToast} />
       )}
