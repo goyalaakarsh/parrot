@@ -91,7 +91,7 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
           <button
             type="button"
             onClick={onCancel}
-            aria-label="Back to prompts"
+            aria-label="Back to texts"
             className="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-all"
           >
             <ArrowLeft size={16} aria-hidden="true" />
@@ -117,7 +117,7 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Type or paste your text template here..."
-            aria-label="Prompt text"
+            aria-label="Text content"
             className="px-3 py-2 text-[13px] rounded-md bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all resize-none min-h-[90px]"
             required
             autoFocus

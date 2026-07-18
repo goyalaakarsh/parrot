@@ -14,7 +14,7 @@ const features = [
   {
     icon: CornerDownLeft,
     title: 'Instant Paste',
-    desc: 'Select a prompt and press Enter to type it out',
+    desc: 'Select a text and press Enter to type it out',
     shortcut: 'Enter',
   },
   {
@@ -26,17 +26,17 @@ const features = [
   {
     icon: Search,
     title: 'Quick Search',
-    desc: 'Start typing to filter prompts instantly',
+    desc: 'Start typing to filter texts instantly',
     shortcut: 'Type to filter',
   },
 ];
 
 const shortcuts = [
   { keys: 'Ctrl+K / Ctrl+Space', action: 'Open Parrot' },
-  { keys: '↑ / ↓', action: 'Navigate prompts' },
-  { keys: 'Enter', action: 'Paste selected prompt' },
-  { keys: 'Shift+Enter', action: 'Copy selected prompt' },
-  { keys: 'Ctrl+N', action: 'Add new prompt' },
+  { keys: '↑ / ↓', action: 'Navigate texts' },
+  { keys: 'Enter', action: 'Paste selected text' },
+  { keys: 'Shift+Enter', action: 'Copy selected text' },
+  { keys: 'Ctrl+N', action: 'Add new text' },
   { keys: 'Ctrl+,', action: 'Open settings' },
   { keys: 'Esc', action: 'Close Parrot' },
 ];
@@ -58,7 +58,7 @@ export function Onboarding({ onDismiss }: OnboardingProps) {
           Welcome to Parrot
         </h1>
         <p className="text-xs text-muted text-center max-w-[280px] mb-6 leading-relaxed">
-          Your prompts, always a keystroke away.
+          Your texts, always a keystroke away.
           Save and paste your frequently used text snippets in any app.
         </p>
 

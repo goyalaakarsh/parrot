@@ -27,8 +27,8 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Search prompts or tags..."
-          aria-label="Search prompts"
+          placeholder="Search texts or tags..."
+          aria-label="Search texts"
           className="w-full h-9 px-3 text-sm font-medium rounded-lg bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all duration-100"
         />
         {value && (

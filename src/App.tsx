@@ -118,7 +118,7 @@ export default function App() {
   const commands = useMemo(() => [
     {
       id: 'open-prompts',
-      label: 'Open Prompts',
+      label: 'Open Texts',
       category: 'Navigation',
       shortcut: 'Ctrl+Shift+P',
       action: () => { setView('list'); setSearchFocused(true); },
@@ -134,7 +134,7 @@ export default function App() {
     },
     {
       id: 'add-prompt',
-      label: 'Add Prompt',
+      label: 'Add Text',
       category: 'Navigation',
       shortcut: 'Ctrl+N',
       action: () => setView('add'),
@@ -263,9 +263,9 @@ export default function App() {
   }
 
   const screenName: Record<string, string> = {
-    list: 'Prompts',
-    add: 'Add Prompt',
-    edit: 'Edit Prompt',
+    list: 'Texts',
+    add: 'Add Text',
+    edit: 'Edit Text',
     settings: 'Settings',
     about: 'About',
     'command-palette': 'Commands',
@@ -301,7 +301,7 @@ export default function App() {
           />
           {loading ? (
             <div role="status" className="flex-1 flex items-center justify-center">
-              <span className="text-xs text-muted">Loading prompts...</span>
+              <span className="text-xs text-muted">Loading texts...</span>
             </div>
           ) : (
             <PromptList

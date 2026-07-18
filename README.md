@@ -5,7 +5,7 @@
 <h1 align="center">Parrot</h1>
 
 <p align="center">
-  A lightweight, high-performance desktop tray prompt manager built using <b>Tauri v2</b>, <b>React</b>, <b>TypeScript</b>, and <b>Tailwind CSS</b>. Securely store, search, and instantly paste frequently used AI prompts or text snippets into any active input field.
+  A lightweight, high-performance desktop power clipboard built using <b>Tauri v2</b>, <b>React</b>, <b>TypeScript</b>, and <b>Tailwind CSS</b>. Securely store, search, and instantly paste frequently used text snippets into any active input field.
 </p>
 
 <p align="center">
@@ -24,7 +24,7 @@
 
 <p align="center">
   <img src="public/screenshots/search.png" alt="Parrot - Search" width="400" />&nbsp;&nbsp;
-  <img src="public/screenshots/add-new.png" alt="Parrot - Add Prompt" width="400" />
+  <img src="public/screenshots/add-new.png" alt="Parrot - Add Text" width="400" />
 </p>
 
 <p align="center">
@@ -50,15 +50,15 @@
 | Shortcut | Action |
 |---|---|
 | `Ctrl+Shift+Space` | Toggle Parrot popup (default, customizable in Settings) |
-| `Arrow Up` / `Arrow Down` | Navigate prompt cards |
-| `Enter` | Auto-paste selected prompt into previous active window |
-| `Shift+Enter` | Copy selected prompt to clipboard (without pasting) |
+| `Arrow Up` / `Arrow Down` | Navigate text cards |
+| `Enter` | Auto-paste selected text into previous active window |
+| `Shift+Enter` | Copy selected text to clipboard (without pasting) |
 | `Escape` | Close window / Cancel add/edit/delete / Go back from Settings |
-| `Ctrl+N` | Open Add Prompt panel |
-| `Ctrl+E` | Edit selected prompt |
-| `Ctrl+D` or `Delete` | Delete selected prompt (Enter to confirm, Escape to cancel) |
+| `Ctrl+N` | Open Add Text panel |
+| `Ctrl+E` | Edit selected text |
+| `Ctrl+D` or `Delete` | Delete selected text (Enter to confirm, Escape to cancel) |
 | `Ctrl+,` | Open Settings |
-| `Ctrl+Enter` | Save prompt in Add/Edit panel |
+| `Ctrl+Enter` | Save text in Add/Edit panel |
 | `Arrow Left` / `Arrow Right` | Navigate Cancel/Delete buttons in confirmation |
 | `Tab` | Move focus between interactive elements |
 

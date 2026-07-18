@@ -12,9 +12,9 @@ interface ActionItem {
 }
 
 const actions: ActionItem[] = [
-  { id: 'add', label: 'Add Prompt', icon: <Plus size={14} />, shortcut: 'Ctrl+N', action: () => invoke('open_main_window', { view: 'add' }) },
+  { id: 'add', label: 'Add Text', icon: <Plus size={14} />, shortcut: 'Ctrl+N', action: () => invoke('open_main_window', { view: 'add' }) },
   { id: 'palette', label: 'Command Palette', icon: <Command size={14} />, shortcut: 'Ctrl+K', action: () => invoke('open_main_window', { view: 'command-palette' }) },
-  { id: 'open', label: 'Open Prompts', icon: <Search size={14} />, action: () => invoke('open_main_window', { view: 'list' }) },
+  { id: 'open', label: 'Open Texts', icon: <Search size={14} />, action: () => invoke('open_main_window', { view: 'list' }) },
   { id: 'settings', label: 'Settings', icon: <Settings size={14} />, shortcut: 'Ctrl+,', action: () => invoke('open_main_window', { view: 'settings' }) },
 ];
 

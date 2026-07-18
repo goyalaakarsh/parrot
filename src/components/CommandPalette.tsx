@@ -58,7 +58,7 @@ export function CommandPalette({ onClose, commands }: CommandPaletteProps) {
       <div className="flex items-center gap-2 border-b border-border pb-2.5 mb-2">
         <button
           onClick={onClose}
-          aria-label="Back to prompts"
+          aria-label="Back to texts"
           className="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-all"
         >
           <ArrowLeft size={16} aria-hidden="true" />

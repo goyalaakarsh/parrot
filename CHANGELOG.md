@@ -6,7 +6,7 @@
 
 - System tray residency with custom dark-themed context menu
 - Global shortcut trigger (Ctrl+Shift+Space, configurable)
-- Prompt CRUD with auto-paste and copy flows
+- Text CRUD with auto-paste and copy flows
 - Search with multi-word matching across titles, text, and tags
 - Settings panel with shortcut capture and launch-at-startup toggle
 - Persistent window position
@@ -17,7 +17,7 @@
 - Full keyboard navigation with arrow keys and shortcuts
 - ARIA roles: listbox, option, menu, menuitem, switch, alert
 - aria-label on all icon-only buttons
-- aria-selected on active prompt cards
+- aria-selected on active text cards
 - aria-checked on toggle switch
 - aria-live regions for dynamic content
 - Screen reader support for view changes and toast notifications

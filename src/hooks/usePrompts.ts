@@ -15,8 +15,8 @@ export function usePrompts(showToast: (msg: string, type?: 'success' | 'error') 
       const sorted = [...data].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setPrompts(sorted);
     } catch (err: any) {
-      console.error('Failed to load prompts:', err);
-      showToast(err.toString() || 'Failed to load prompts', 'error');
+      console.error('Failed to load texts:', err);
+      showToast(err.toString() || 'Failed to load texts', 'error');
     } finally {
       setLoading(false);
     }
@@ -41,11 +41,11 @@ export function usePrompts(showToast: (msg: string, type?: 'success' | 'error') 
 
     try {
       await invoke('save_prompts', { prompts: updatedPrompts });
-      showToast('Prompt created successfully', 'success');
+      showToast('Text created successfully', 'success');
       return true;
     } catch (err: any) {
-      console.error('Failed to save prompt:', err);
-      showToast(err.toString() || 'Failed to save prompt', 'error');
+      console.error('Failed to save text:', err);
+      showToast(err.toString() || 'Failed to save text', 'error');
       // Rollback on error
       fetchPrompts();
       return false;
@@ -70,11 +70,11 @@ export function usePrompts(showToast: (msg: string, type?: 'success' | 'error') 
 
     try {
       await invoke('save_prompts', { prompts: updatedPrompts });
-      showToast('Prompt updated successfully', 'success');
+      showToast('Text updated successfully', 'success');
       return true;
     } catch (err: any) {
-      console.error('Failed to update prompt:', err);
-      showToast(err.toString() || 'Failed to update prompt', 'error');
+      console.error('Failed to update text:', err);
+      showToast(err.toString() || 'Failed to update text', 'error');
       fetchPrompts();
       return false;
     }
@@ -87,11 +87,11 @@ export function usePrompts(showToast: (msg: string, type?: 'success' | 'error') 
 
     try {
       await invoke('save_prompts', { prompts: updatedPrompts });
-      showToast('Prompt deleted successfully', 'success');
+      showToast('Text deleted successfully', 'success');
       return true;
     } catch (err: any) {
-      console.error('Failed to delete prompt:', err);
-      showToast(err.toString() || 'Failed to delete prompt', 'error');
+      console.error('Failed to delete text:', err);
+      showToast(err.toString() || 'Failed to delete text', 'error');
       fetchPrompts();
       return false;
     }

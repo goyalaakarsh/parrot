@@ -10,7 +10,7 @@ export function AboutPanel({ onBack }: AboutPanelProps) {
       <div className="flex items-center gap-2 border-b border-border pb-2.5 mb-5">
         <button
           onClick={onBack}
-          aria-label="Back to prompts"
+          aria-label="Back to texts"
           className="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-all"
         >
           <ArrowLeft size={16} aria-hidden="true" />
@@ -35,7 +35,7 @@ export function AboutPanel({ onBack }: AboutPanelProps) {
 
         <div className="w-full max-w-[240px] px-4 py-3 rounded-lg bg-surface border border-border">
           <p className="text-[11px] text-muted leading-relaxed">
-            A lightweight tray prompt manager. Store, search, and paste your frequently used AI prompts into any window.
+            A power clipboard for your desktop. Store, search, and paste your frequently used text snippets into any window.
           </p>
         </div>
 

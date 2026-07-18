@@ -142,7 +142,7 @@ export function PromptCard({
         <div className="flex flex-col gap-2 w-full animate-slide-up">
           <div className="flex items-center gap-1.5 text-danger text-xs font-semibold">
             <AlertCircle size={14} aria-hidden="true" />
-            <span>Delete this prompt?</span>
+            <span>Delete this text?</span>
           </div>
           <div className="flex gap-2 justify-end">
             <button
