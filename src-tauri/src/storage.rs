@@ -24,10 +24,23 @@ pub struct Prompt {
 #[serde(rename_all = "camelCase")]
 pub struct HistoryEntry {
     pub id: String,
+    #[serde(default)]
     pub text: String,
     #[serde(default)]
     pub source_app: Option<String>,
     pub captured_at: String,
+    #[serde(default)]
+    pub image_path: Option<String>,
+    #[serde(default)]
+    pub image_width: Option<u32>,
+    #[serde(default)]
+    pub image_height: Option<u32>,
+}
+
+impl HistoryEntry {
+    pub fn is_image(&self) -> bool {
+        self.image_path.is_some()
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -39,7 +52,14 @@ pub struct Settings {
     pub quick_capture_shortcut: String,
     #[serde(default)]
     pub launch_at_startup: bool,
+    #[serde(default = "default_text_retention")]
+    pub text_history_retention_days: u32,
+    #[serde(default = "default_image_retention")]
+    pub image_history_retention_days: u32,
 }
+
+fn default_text_retention() -> u32 { 15 }
+fn default_image_retention() -> u32 { 5 }
 
 impl Default for Settings {
     fn default() -> Self {
@@ -47,6 +67,8 @@ impl Default for Settings {
             global_shortcut: "CommandOrControl+Shift+Space".to_string(),
             quick_capture_shortcut: "CommandOrControl+Shift+C".to_string(),
             launch_at_startup: false,
+            text_history_retention_days: 15,
+            image_history_retention_days: 5,
         }
     }
 }
@@ -99,6 +121,8 @@ pub fn load_settings(app: &tauri::AppHandle) -> Result<Settings, String> {
             global_shortcut: "CommandOrControl+Shift+Space".to_string(),
             quick_capture_shortcut: "CommandOrControl+Shift+C".to_string(),
             launch_at_startup: true,
+            text_history_retention_days: 15,
+            image_history_retention_days: 5,
         };
         save_settings(app, &default_settings)?;
         
@@ -129,14 +153,21 @@ pub fn load_history(app: &tauri::AppHandle) -> Result<Vec<HistoryEntry>, String>
     let content = fs::read_to_string(&path).map_err(|e| e.to_string())?;
     let entries: Vec<HistoryEntry> = serde_json::from_str(&content).map_err(|e| e.to_string())?;
 
-    // Filter out entries older than 15 days
-    let cutoff = chrono::Utc::now() - chrono::Duration::days(15);
+    let settings = load_settings(app).unwrap_or_default();
+    let text_cutoff = chrono::Utc::now() - chrono::Duration::days(settings.text_history_retention_days as i64);
+    let image_cutoff = chrono::Utc::now() - chrono::Duration::days(settings.image_history_retention_days as i64);
+
     let total = entries.len();
     let filtered: Vec<HistoryEntry> = entries
         .into_iter()
         .filter(|e| {
             if let Ok(ts) = chrono::DateTime::parse_from_rfc3339(&e.captured_at) {
-                ts.with_timezone(&chrono::Utc) > cutoff
+                let utc_ts = ts.with_timezone(&chrono::Utc);
+                if e.is_image() {
+                    utc_ts > image_cutoff
+                } else {
+                    utc_ts > text_cutoff
+                }
             } else {
                 false
             }
@@ -151,9 +182,64 @@ pub fn load_history(app: &tauri::AppHandle) -> Result<Vec<HistoryEntry>, String>
     Ok(filtered)
 }
 
+pub fn delete_image_file(app: &tauri::AppHandle, image_path: &str) {
+    if image_path.is_empty() {
+        return;
+    }
+    if let Ok(app_data_dir) = app.path().app_data_dir() {
+        let full_path = app_data_dir.join(image_path);
+        let _ = fs::remove_file(full_path);
+    }
+}
+
+pub fn cleanup_orphaned_images(app: &tauri::AppHandle, keep_entries: &[HistoryEntry]) {
+    if let Ok(app_data_dir) = app.path().app_data_dir() {
+        let images_dir = app_data_dir.join("images");
+        if !images_dir.exists() {
+            return;
+        }
+        // Collect referenced image paths
+        let referenced: std::collections::HashSet<&str> = keep_entries
+            .iter()
+            .filter_map(|e| e.image_path.as_deref())
+            .collect();
+
+        // Delete files not in referenced set
+        if let Ok(entries) = fs::read_dir(&images_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if let Some(relative) = path.strip_prefix(&app_data_dir).ok() {
+                    let rel_str = relative.to_string_lossy().replace('\\', "/");
+                    if !referenced.contains(rel_str.as_str()) {
+                        let _ = fs::remove_file(&path);
+                    }
+                }
+            }
+        }
+    }
+}
+
 pub fn save_history(app: &tauri::AppHandle, entries: &[HistoryEntry]) -> Result<(), String> {
     let path = get_storage_path(app, "history.json")?;
     let content = serde_json::to_string_pretty(entries).map_err(|e| e.to_string())?;
     fs::write(&path, content).map_err(|e| e.to_string())?;
+    cleanup_orphaned_images(app, entries);
     Ok(())
+}
+
+pub fn save_image_to_disk(app: &tauri::AppHandle, entry_id: &str, data: &[u8], width: u32, height: u32) -> Result<String, String> {
+    let app_data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let images_dir = app_data_dir.join("images");
+    fs::create_dir_all(&images_dir).map_err(|e| e.to_string())?;
+
+    let filename = format!("{}.png", entry_id);
+    let file_path = images_dir.join(&filename);
+
+    let img: image::ImageBuffer<image::Rgba<u8>, Vec<u8>> =
+        image::ImageBuffer::from_raw(width, height, data.to_vec())
+            .ok_or_else(|| "Failed to create image buffer".to_string())?;
+    img.save(&file_path).map_err(|e| e.to_string())?;
+
+    let relative = format!("images/{}", filename);
+    Ok(relative)
 }

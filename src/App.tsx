@@ -28,6 +28,7 @@ export default function App() {
   const [searchFocused, setSearchFocused] = useState(true);
   const [activeTab, setActiveTab] = useState<'texts' | 'history'>('texts');
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [historyFilter, setHistoryFilter] = useState<'all' | 'text' | 'images'>('all');
 
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -48,6 +49,23 @@ export default function App() {
 
   // Search filter hook (for My Texts tab)
   const filteredPrompts = useSearch(prompts, searchQuery, activeTag);
+
+  // Search filter for history
+  const filteredHistory = useMemo(() => {
+    if (!searchQuery.trim()) return historyEntries;
+    const q = searchQuery.toLowerCase().trim();
+    return historyEntries.filter(e => {
+      if (e.text && e.text.toLowerCase().includes(q)) return true;
+      if (e.sourceApp && e.sourceApp.toLowerCase().includes(q)) return true;
+      return false;
+    });
+  }, [historyEntries, searchQuery]);
+
+  const displayHistory = useMemo(() => {
+    if (historyFilter === 'text') return filteredHistory.filter(e => !e.imagePath);
+    if (historyFilter === 'images') return filteredHistory.filter(e => e.imagePath);
+    return filteredHistory;
+  }, [filteredHistory, historyFilter]);
 
   // Focus search bar when returning to list view
   useEffect(() => {
@@ -91,7 +109,11 @@ export default function App() {
   // History Copy Flow
   const handleCopyHistory = async (entry: HistoryEntry) => {
     try {
-      await writeText(entry.text);
+      if (entry.imagePath) {
+        await invoke('copy_image', { entryId: entry.id });
+      } else {
+        await writeText(entry.text);
+      }
       showToast('Copied!', 'success');
       setTimeout(async () => {
         const win = getCurrentWindow();
@@ -105,13 +127,19 @@ export default function App() {
   // History Paste Flow
   const handlePasteHistory = async (entry: HistoryEntry) => {
     try {
-      const hwnd = await invoke<number>('get_foreground_hwnd');
-      await writeText(entry.text);
-      const win = getCurrentWindow();
-      await win.hide();
-      await invoke('paste_to_previous_window', { hwnd });
+      if (entry.imagePath) {
+        // Image paste — handled by Rust command
+        await invoke('paste_image', { entryId: entry.id });
+      } else {
+        // Text paste — existing flow
+        const hwnd = await invoke<number>('get_foreground_hwnd');
+        await writeText(entry.text);
+        const win = getCurrentWindow();
+        await win.hide();
+        await invoke('paste_to_previous_window', { hwnd });
+      }
     } catch (err: any) {
-      showToast('Auto-paste failed: ' + err.toString(), 'error');
+      showToast('Paste failed: ' + err.toString(), 'error');
     }
   };
 
@@ -125,6 +153,43 @@ export default function App() {
     }
   };
 
+  // Keyboard navigation handlers
+  const handleKeyboardEnter = useCallback((index: number) => {
+    if (activeTab === 'texts' && filteredPrompts[index]) {
+      handlePastePrompt(filteredPrompts[index]);
+    } else if (activeTab === 'history' && displayHistory[index]) {
+      handlePasteHistory(displayHistory[index]);
+    }
+  }, [activeTab, filteredPrompts, displayHistory, handlePastePrompt, handlePasteHistory]);
+
+  const handleKeyboardShiftEnter = useCallback((index: number) => {
+    if (activeTab === 'texts' && filteredPrompts[index]) {
+      handleCopyPrompt(filteredPrompts[index]);
+    } else if (activeTab === 'history' && displayHistory[index]) {
+      handleCopyHistory(displayHistory[index]);
+    }
+  }, [activeTab, filteredPrompts, displayHistory, handleCopyPrompt, handleCopyHistory]);
+
+  const handleKeyboardEscape = useCallback(async () => {
+    const win = getCurrentWindow();
+    await win.hide();
+    await invoke('paste_to_previous_window', { hwnd: 0 });
+  }, []);
+
+  // Setup keyboard hook navigation
+  const { selectedIndex, setSelectedIndex } = useKeyboard({
+    itemsCount: activeTab === 'texts' ? filteredPrompts.length : displayHistory.length,
+    onEnter: handleKeyboardEnter,
+    onShiftEnter: handleKeyboardShiftEnter,
+    onEscape: handleKeyboardEscape,
+    onCtrlN: () => {
+      if (activeTab === 'texts') setView('add');
+    },
+    onCtrlComma: () => setView('settings'),
+    onCtrlK: () => setView('command-palette'),
+    isActive: view === 'list' && (activeTab === 'texts' ? !loading : !historyLoading),
+  });
+
   // Tab switching
   const handleTabChange = useCallback((tab: 'texts' | 'history') => {
     setActiveTab(tab);
@@ -135,40 +200,7 @@ export default function App() {
     if (tab === 'history') {
       refreshHistory();
     }
-  }, [refreshHistory]);
-
-  // Keyboard navigation handlers (My Texts tab)
-  const handleKeyboardEnter = (index: number) => {
-    if (activeTab === 'texts' && filteredPrompts[index]) {
-      handlePastePrompt(filteredPrompts[index]);
-    }
-  };
-
-  const handleKeyboardShiftEnter = (index: number) => {
-    if (activeTab === 'texts' && filteredPrompts[index]) {
-      handleCopyPrompt(filteredPrompts[index]);
-    }
-  };
-
-  const handleKeyboardEscape = async () => {
-    const win = getCurrentWindow();
-    await win.hide();
-    await invoke('paste_to_previous_window', { hwnd: 0 });
-  };
-
-  // Setup keyboard hook navigation
-  const { selectedIndex, setSelectedIndex } = useKeyboard({
-    itemsCount: activeTab === 'texts' ? filteredPrompts.length : historyEntries.length,
-    onEnter: handleKeyboardEnter,
-    onShiftEnter: handleKeyboardShiftEnter,
-    onEscape: handleKeyboardEscape,
-    onCtrlN: () => {
-      if (activeTab === 'texts') setView('add');
-    },
-    onCtrlComma: () => setView('settings'),
-    onCtrlK: () => setView('command-palette'),
-    isActive: view === 'list' && !loading && !historyLoading,
-  });
+  }, [refreshHistory, setSelectedIndex]);
 
   // Commands for the command palette
   const commands = useMemo(() => [
@@ -407,11 +439,16 @@ export default function App() {
               </div>
             ) : (
               <HistoryPanel
-                entries={historyEntries}
+                entries={displayHistory}
+                totalCount={historyEntries.length}
+                filter={historyFilter}
+                onFilterChange={setHistoryFilter}
                 onCopy={handleCopyHistory}
                 onPaste={handlePasteHistory}
                 onPromote={handlePromoteHistory}
                 onDelete={deleteHistoryEntry}
+                selectedIndex={selectedIndex}
+                onSelectPrompt={setSelectedIndex}
               />
             )
           )}

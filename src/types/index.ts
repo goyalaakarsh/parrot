@@ -14,10 +14,15 @@ export interface HistoryEntry {
   text: string;
   sourceApp: string | null;
   capturedAt: string; // ISO8601 string
+  imagePath?: string;
+  imageWidth?: number;
+  imageHeight?: number;
 }
 
 export interface Settings {
   globalShortcut: string;
   quickCaptureShortcut: string;
   launchAtStartup: boolean;
+  textHistoryRetentionDays: number;
+  imageHistoryRetentionDays: number;
 }

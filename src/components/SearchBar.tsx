@@ -25,46 +25,6 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
 
   return (
     <div className="flex flex-col gap-1.5 mb-3 shrink-0">
-      {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-border pb-1.5">
-        <button
-          onClick={() => onTabChange('texts')}
-          className={`text-xs font-semibold px-2 py-1 rounded transition-all ${
-            activeTab === 'texts'
-              ? 'text-accent bg-accent-dim/15'
-              : 'text-muted hover:text-primary'
-          }`}
-        >
-          My Texts
-        </button>
-        <button
-          onClick={() => onTabChange('history')}
-          className={`text-xs font-semibold px-2 py-1 rounded transition-all ${
-            activeTab === 'history'
-              ? 'text-accent bg-accent-dim/15'
-              : 'text-muted hover:text-primary'
-          }`}
-        >
-          History
-        </button>
-      </div>
-
-      {/* Tag filter chip */}
-      {activeTag && (
-        <div className="flex items-center gap-1.5 text-xs">
-          <span className="px-1.5 py-0.5 rounded bg-accent-dim/20 border border-accent/20 text-accent font-medium flex items-center gap-1">
-            <span>#{activeTag}</span>
-            <button
-              onClick={onClearTag}
-              aria-label="Clear tag filter"
-              className="hover:text-accent-dim transition-all"
-            >
-              <X size={11} />
-            </button>
-          </span>
-        </div>
-      )}
-
       {/* Search input + action buttons */}
       <div className="flex items-center gap-1.5">
         <div className="relative flex-1">
@@ -106,6 +66,46 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
           <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium leading-none">Ctrl+,</kbd>
         </button>
       </div>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-1 border-b border-border pb-1.5">
+        <button
+          onClick={() => onTabChange('texts')}
+          className={`text-xs font-semibold px-2 py-1 rounded transition-all ${
+            activeTab === 'texts'
+              ? 'text-accent bg-accent-dim/15'
+              : 'text-muted hover:text-primary'
+          }`}
+        >
+          My Texts
+        </button>
+        <button
+          onClick={() => onTabChange('history')}
+          className={`text-xs font-semibold px-2 py-1 rounded transition-all ${
+            activeTab === 'history'
+              ? 'text-accent bg-accent-dim/15'
+              : 'text-muted hover:text-primary'
+          }`}
+        >
+          History
+        </button>
+      </div>
+
+      {/* Tag filter chip */}
+      {activeTag && (
+        <div className="flex items-center gap-1.5 text-xs">
+          <span className="px-1.5 py-0.5 rounded bg-accent-dim/20 border border-accent/20 text-accent font-medium flex items-center gap-1">
+            <span>#{activeTag}</span>
+            <button
+              onClick={onClearTag}
+              aria-label="Clear tag filter"
+              className="hover:text-accent-dim transition-all"
+            >
+              <X size={11} />
+            </button>
+          </span>
+        </div>
+      )}
     </div>
   );
 }

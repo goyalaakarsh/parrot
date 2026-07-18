@@ -42,7 +42,7 @@ pub fn run() {
                 tauri_plugin_global_shortcut::Builder::new()
                     .with_handler(move |app, shortcut: &Shortcut, event| {
                         if event.state() == tauri_plugin_global_shortcut::ShortcutState::Pressed {
-                            hotkey::handle_hotkey_trigger(app, &shortcut.to_string().to_lowercase());
+                            hotkey::handle_hotkey_trigger(app, shortcut);
                         }
                     })
                     .build(),
@@ -210,6 +210,9 @@ pub fn run() {
             commands::delete_history_entry,
             commands::clear_history,
             commands::promote_to_prompt,
+            commands::paste_image,
+            commands::copy_image,
+            commands::get_image_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

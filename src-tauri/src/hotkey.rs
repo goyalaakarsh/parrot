@@ -11,53 +11,45 @@ pub fn register_hotkeys(app: &AppHandle, toggle_shortcut: &str, quick_capture_sh
     let _ = shortcut_manager.unregister_all();
 
     // Register toggle shortcut
-    let toggle_normalized = toggle_shortcut.to_lowercase()
-        .replace("commandorcontrol", "ctrl")
-        .replace("control", "ctrl")
-        .replace("command", "super")
-        .replace("cmd", "super");
-
-    let toggle_shortcut = Shortcut::from_str(&toggle_normalized)
+    let toggle_normalized = normalize_shortcut(toggle_shortcut);
+    let toggle_parsed = Shortcut::from_str(&toggle_normalized)
         .map_err(|e| format!("Failed to parse shortcut '{}': {:?}", toggle_shortcut, e))?;
 
-    shortcut_manager.register(toggle_shortcut)
-        .map_err(|e| format!("Failed to register shortcut '{}': {:?}", toggle_shortcut, e))?;
+    shortcut_manager.register(toggle_parsed)
+        .map_err(|e| format!("Failed to register shortcut '{}': {:?}", toggle_normalized, e))?;
 
     // Register quick capture shortcut
-    let qc_normalized = quick_capture_shortcut.to_lowercase()
-        .replace("commandorcontrol", "ctrl")
-        .replace("control", "ctrl")
-        .replace("command", "super")
-        .replace("cmd", "super");
-
-    let qc_shortcut = Shortcut::from_str(&qc_normalized)
+    let qc_normalized = normalize_shortcut(quick_capture_shortcut);
+    let qc_parsed = Shortcut::from_str(&qc_normalized)
         .map_err(|e| format!("Failed to parse shortcut '{}': {:?}", quick_capture_shortcut, e))?;
 
-    shortcut_manager.register(qc_shortcut)
-        .map_err(|e| format!("Failed to register shortcut '{}': {:?}", quick_capture_shortcut, e))?;
+    shortcut_manager.register(qc_parsed)
+        .map_err(|e| format!("Failed to register shortcut '{}': {:?}", qc_normalized, e))?;
 
     Ok(())
 }
 
-pub fn handle_hotkey_trigger(app: &AppHandle, shortcut_str: &str) {
+fn normalize_shortcut(s: &str) -> String {
+    s.to_lowercase()
+        .replace("commandorcontrol", "ctrl")
+        .replace("control", "ctrl")
+        .replace("command", "super")
+        .replace("cmd", "super")
+}
+
+pub fn handle_hotkey_trigger(app: &AppHandle, triggered: &Shortcut) {
     let settings = crate::storage::load_settings(app).unwrap_or_default();
 
-    let toggle_normalized = settings.global_shortcut.to_lowercase()
-        .replace("commandorcontrol", "ctrl")
-        .replace("control", "ctrl")
-        .replace("command", "super")
-        .replace("cmd", "super");
+    if let Ok(toggle_parsed) = Shortcut::from_str(&settings.global_shortcut) {
+        if triggered == &toggle_parsed {
+            return handle_toggle(app);
+        }
+    }
 
-    let qc_normalized = settings.quick_capture_shortcut.to_lowercase()
-        .replace("commandorcontrol", "ctrl")
-        .replace("control", "ctrl")
-        .replace("command", "super")
-        .replace("cmd", "super");
-
-    if shortcut_str == toggle_normalized {
-        handle_toggle(app);
-    } else if shortcut_str == qc_normalized {
-        handle_quick_capture(app);
+    if let Ok(qc_parsed) = Shortcut::from_str(&settings.quick_capture_shortcut) {
+        if triggered == &qc_parsed {
+            handle_quick_capture(app);
+        }
     }
 }
 

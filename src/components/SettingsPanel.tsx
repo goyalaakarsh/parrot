@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Keyboard, Power, Zap } from 'lucide-react';
+import { ArrowLeft, Keyboard, Power, Zap, Clock } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { Settings } from '../types';
@@ -9,10 +9,14 @@ interface SettingsPanelProps {
   showToast: (msg: string, type?: 'success' | 'error') => void;
 }
 
+const RETENTION_OPTIONS = [3, 5, 10, 15, 20, 25, 30];
+
 export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
   const [shortcut, setShortcut] = useState('CommandOrControl+Shift+Space');
   const [quickCaptureShortcut, setQuickCaptureShortcut] = useState('CommandOrControl+Shift+C');
   const [autostart, setAutostart] = useState(true);
+  const [textRetention, setTextRetention] = useState(15);
+  const [imageRetention, setImageRetention] = useState(5);
   const [isCapturing, setIsCapturing] = useState<'main' | 'quick' | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -24,6 +28,8 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
         const savedSettings = await invoke<Settings>('get_settings');
         setShortcut(savedSettings.globalShortcut);
         setQuickCaptureShortcut(savedSettings.quickCaptureShortcut || 'CommandOrControl+Shift+C');
+        setTextRetention(savedSettings.textHistoryRetentionDays ?? 15);
+        setImageRetention(savedSettings.imageHistoryRetentionDays ?? 5);
 
         const autostartEnabled = await isEnabled();
         setAutostart(autostartEnabled);
@@ -38,7 +44,6 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
     loadSettings();
   }, [showToast]);
 
-  // Wire Escape to go back (only when not capturing)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !isCapturing) {
@@ -50,7 +55,6 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onBack, isCapturing]);
 
-  // Capture keyboard combination
   useEffect(() => {
     if (!isCapturing) return;
 
@@ -98,17 +102,6 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [isCapturing]);
 
-  const toggleAutostart = () => {
-    setAutostart((prev) => !prev);
-  };
-
-  const handleToggleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      e.preventDefault();
-      toggleAutostart();
-    }
-  };
-
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -117,6 +110,8 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
           globalShortcut: shortcut,
           quickCaptureShortcut,
           launchAtStartup: autostart,
+          textHistoryRetentionDays: textRetention,
+          imageHistoryRetentionDays: imageRetention,
         },
       });
 
@@ -149,8 +144,8 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col justify-between p-1 select-text">
-      <div className="space-y-5">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-1 select-text">
+      <div className="flex-1 overflow-y-auto pr-0.5 space-y-5">
         <div className="flex items-center gap-2 border-b border-border pb-2.5">
           <button
             onClick={onBack}
@@ -162,7 +157,7 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
           </button>
           <h2 className="text-sm font-semibold text-primary">Settings</h2>
         </div>
-        <div className="flex items-center justify-between p-3 rounded-md border border-border bg-surface">
+                <div className="flex items-center justify-between p-3 rounded-md border border-border bg-surface">
           <div className="flex items-center gap-2">
             <Power size={14} className="text-muted" aria-hidden="true" />
             <div className="flex flex-col">
@@ -171,8 +166,7 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
             </div>
           </div>
           <button
-            onClick={toggleAutostart}
-            onKeyDown={handleToggleKeyDown}
+            onClick={() => setAutostart(!autostart)}
             role="switch"
             aria-checked={autostart}
             aria-label="Toggle launch at startup"
@@ -187,7 +181,6 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
             />
           </button>
         </div>
-      </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted">
@@ -244,11 +237,57 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
           </div>
         </div>
 
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted">
+            <Clock size={12} aria-hidden="true" />
+            <span>HISTORY RETENTION</span>
+          </div>
+
+          <div className="flex flex-col gap-1.5 p-3 rounded-md border border-border bg-surface">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-primary">Text history</span>
+              <select
+                value={textRetention}
+                onChange={(e) => setTextRetention(Number(e.target.value))}
+                className="h-7 px-2 text-xs rounded-md bg-surface-hover border border-border text-primary focus:outline-none focus:border-accent cursor-pointer"
+              >
+                {RETENTION_OPTIONS.map((d) => (
+                  <option key={d} value={d}>{d} days</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-xs text-primary">Image history</span>
+                <span className="text-[9px] text-muted">Images use more disk space</span>
+              </div>
+              <select
+                value={imageRetention}
+                onChange={(e) => setImageRetention(Number(e.target.value))}
+                className="h-7 px-2 text-xs rounded-md bg-surface-hover border border-border text-primary focus:outline-none focus:border-accent cursor-pointer"
+              >
+                {RETENTION_OPTIONS.map((d) => (
+                  <option key={d} value={d}>{d} days</option>
+                ))}
+              </select>
+            </div>
+
+            {imageRetention > 10 && (
+              <div className="px-2 py-1 rounded bg-yellow-500/10 border border-yellow-500/20 text-[10px] text-yellow-500">
+                Longer image retention uses more disk space. Stored on your device only.
+              </div>
+            )}
+          </div>
+        </div>
+
+
+      </div>
 
       <button
         onClick={handleSave}
         disabled={saving}
-        className="w-full h-9 rounded-md bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-all mt-6"
+        className="w-full h-9 rounded-md bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-all mt-4"
       >
         {saving ? 'Saving...' : 'Save Settings'}
       </button>
