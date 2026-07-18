@@ -3,16 +3,19 @@ pub mod paste;
 pub mod hook;
 pub mod hotkey;
 pub mod commands;
+pub mod clipboard_monitor;
 
+use std::sync::Mutex;
+use std::sync::atomic::AtomicBool;
 use tauri::{
     tray::TrayIconBuilder,
     Manager, WindowEvent, Emitter
 };
 use tauri_plugin_positioner::{WindowExt, Position};
+use tauri_plugin_global_shortcut::Shortcut;
 use crate::commands::LAST_FOREGROUND_HWND;
 use crate::paste::get_current_foreground_hwnd;
-use std::sync::Mutex;
-use std::sync::atomic::AtomicBool;
+use crate::clipboard_monitor::HistoryState;
 
 pub static HAS_SHOWN_ONCE: AtomicBool = AtomicBool::new(false);
 pub static LAST_SHOW_TIME: Mutex<Option<std::time::Instant>> = Mutex::new(None);
@@ -27,21 +30,31 @@ pub fn run() {
             Some(vec!["--minimized"]),
         ))
         .setup(|app| {
+            // Initialize history state
+            let initial_entries = storage::load_history(app.handle()).unwrap_or_default();
+            app.manage(Mutex::new(HistoryState {
+                entries: initial_entries,
+                dirty: false,
+            }));
+
             // Register global shortcut handler plugin
             app.handle().plugin(
                 tauri_plugin_global_shortcut::Builder::new()
-                    .with_handler(move |app, _shortcut, event| {
+                    .with_handler(move |app, shortcut: &Shortcut, event| {
                         if event.state() == tauri_plugin_global_shortcut::ShortcutState::Pressed {
-                            hotkey::handle_hotkey_trigger(app);
+                            hotkey::handle_hotkey_trigger(app, &shortcut.to_string().to_lowercase());
                         }
                     })
                     .build(),
             )?;
 
-            // Load saved settings and register the global shortcut
+            // Load saved settings and register both hotkeys
             if let Ok(settings) = storage::load_settings(app.handle()) {
-                let _ = hotkey::register_hotkey(app.handle(), &settings.global_shortcut);
+                let _ = hotkey::register_hotkeys(app.handle(), &settings.global_shortcut, &settings.quick_capture_shortcut);
             }
+
+            // Start clipboard monitoring
+            clipboard_monitor::start_clipboard_monitoring(app.handle().clone());
 
             let last_hide_time = std::sync::Arc::new(std::sync::Mutex::new(None::<std::time::Instant>));
             let last_hide_time_clone = last_hide_time.clone();
@@ -193,6 +206,10 @@ pub fn run() {
             commands::get_foreground_hwnd,
             commands::check_first_run,
             commands::get_recent_prompts,
+            commands::get_history,
+            commands::delete_history_entry,
+            commands::clear_history,
+            commands::promote_to_prompt,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

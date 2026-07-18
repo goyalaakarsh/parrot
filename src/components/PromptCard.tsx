@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Edit2, Trash2, Clipboard, CornerDownLeft, AlertCircle } from 'lucide-react';
+import { Edit2, Trash2, Clipboard, CornerDownLeft, AlertCircle, Star } from 'lucide-react';
 import { Prompt } from '../types';
 
 interface PromptCardProps {
@@ -10,6 +10,8 @@ interface PromptCardProps {
   onDelete: () => void;
   onCopy: () => void;
   onPaste: () => void;
+  onTogglePin: () => void;
+  onTagClick: (tag: string) => void;
 }
 
 export function PromptCard({
@@ -20,6 +22,8 @@ export function PromptCard({
   onDelete,
   onCopy,
   onPaste,
+  onTogglePin,
+  onTagClick,
 }: PromptCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -164,23 +168,32 @@ export function PromptCard({
       ) : (
         <>
 
-          {displayDescription && (
-            <p className={`text-xs text-muted mt-1 break-words whitespace-pre-line text-left ${
+          <div className="flex items-start gap-2">
+            {prompt.pinned && (
+              <Star size={11} className="fill-yellow-500 text-yellow-500 shrink-0 mt-0.5" aria-label="Pinned" />
+            )}
+            {displayDescription && (
+            <p className={`text-xs text-muted break-words whitespace-pre-line text-left flex-1 ${
               isSelected ? 'line-clamp-5' : 'line-clamp-2'
             }`}>
               {truncatedDescription}
             </p>
           )}
+          </div>
 
           {prompt.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
               {prompt.tags.map((tag) => (
-                <span
+                <button
                   key={tag}
-                  className="px-1.5 py-0.5 rounded text-[10px] bg-surface-hover border border-border text-muted font-medium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTagClick(tag);
+                  }}
+                  className="px-1.5 py-0.5 rounded text-[10px] bg-surface-hover border border-border text-muted font-medium hover:text-accent hover:border-accent/30 transition-all"
                 >
                   #{tag}
-                </span>
+                </button>
               ))}
             </div>
           )}
@@ -190,6 +203,18 @@ export function PromptCard({
               ? 'h-6 opacity-100 mt-2.5 pt-0.5' 
               : 'h-0 opacity-0 group-hover:h-6 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-0.5'
           }`}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onTogglePin();
+              }}
+              title={prompt.pinned ? 'Unpin' : 'Pin to top'}
+              aria-label={prompt.pinned ? 'Unpin' : 'Pin to top'}
+              tabIndex={isSelected ? 0 : -1}
+              className="p-1 rounded text-muted hover:text-yellow-500 hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
+            >
+              <Star size={13} aria-hidden="true" className={prompt.pinned ? 'fill-yellow-500 text-yellow-500' : ''} />
+            </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();

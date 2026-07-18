@@ -1,7 +1,8 @@
 use tauri::{AppHandle, Manager, Emitter};
 
-use crate::storage::{self, Prompt, Settings};
+use crate::storage::{self, Prompt, Settings, HistoryEntry};
 use crate::paste::{get_current_foreground_hwnd, restore_focus_and_paste, is_valid_user_window};
+use crate::clipboard_monitor::{self, HistoryState};
 use std::sync::Mutex;
 
 pub static LAST_FOREGROUND_HWND: Mutex<Option<isize>> = Mutex::new(None);
@@ -24,12 +25,13 @@ pub fn get_settings(app: AppHandle) -> Result<Settings, String> {
 #[tauri::command]
 pub fn save_settings(app: AppHandle, settings: Settings) -> Result<(), String> {
     storage::save_settings(&app, &settings)?;
-    crate::hotkey::register_hotkey(&app, &settings.global_shortcut)?;
+    crate::hotkey::register_hotkeys(&app, &settings.global_shortcut, &settings.quick_capture_shortcut)?;
     Ok(())
 }
 
 #[tauri::command]
 pub fn exit_app(app: AppHandle) {
+    clipboard_monitor::flush_history(&app);
     app.exit(0);
 }
 
@@ -101,10 +103,93 @@ pub fn check_first_run(app: AppHandle) -> Result<bool, String> {
 pub fn get_foreground_hwnd() -> Result<isize, String> {
     let last = LAST_FOREGROUND_HWND.lock().unwrap();
     
-    // If we have a saved window handle, return it. Otherwise, get the current foreground window.
     if let Some(hwnd) = *last {
         Ok(hwnd)
     } else {
         Ok(get_current_foreground_hwnd())
     }
+}
+
+// --- History Commands ---
+
+#[tauri::command]
+pub fn get_history(app: AppHandle) -> Result<Vec<HistoryEntry>, String> {
+    // Flush in-memory state to disk first
+    clipboard_monitor::flush_history(&app);
+    storage::load_history(&app)
+}
+
+#[tauri::command]
+pub fn delete_history_entry(app: AppHandle, entry_id: String) -> Result<(), String> {
+    if let Some(state) = app.try_state::<Mutex<HistoryState>>() {
+        if let Ok(mut state) = state.lock() {
+            state.entries.retain(|e| e.id != entry_id);
+            state.dirty = true;
+        }
+    }
+    clipboard_monitor::flush_history(&app);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn clear_history(app: AppHandle) -> Result<(), String> {
+    if let Some(state) = app.try_state::<Mutex<HistoryState>>() {
+        if let Ok(mut state) = state.lock() {
+            state.entries.clear();
+            state.dirty = true;
+        }
+    }
+    clipboard_monitor::flush_history(&app);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn promote_to_prompt(app: AppHandle, entry_id: String) -> Result<(), String> {
+    // Get the entry from history
+    let entry = {
+        let entries = if let Some(state) = app.try_state::<Mutex<HistoryState>>() {
+            let state = state.lock().map_err(|e| e.to_string())?;
+            state.entries.clone()
+        } else {
+            Vec::new()
+        };
+
+        entries.into_iter().find(|e| e.id == entry_id)
+            .ok_or_else(|| "History entry not found".to_string())?
+    };
+
+    // Remove from history
+    if let Some(state) = app.try_state::<Mutex<HistoryState>>() {
+        if let Ok(mut state) = state.lock() {
+            state.entries.retain(|e| e.id != entry_id);
+            state.dirty = true;
+        }
+    }
+
+    // Create prompt from entry
+    let first_line = entry.text.split('\n').next().unwrap_or("").trim();
+    let title = if first_line.len() > 40 {
+        format!("{}...", &first_line[..40])
+    } else {
+        first_line.to_string()
+    };
+
+    let prompt = Prompt {
+        id: uuid::Uuid::new_v4().to_string(),
+        title,
+        text: entry.text,
+        tags: Vec::new(),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        last_used_at: None,
+        pinned: false,
+        pinned_at: None,
+    };
+
+    let mut prompts = storage::load_prompts(&app)?;
+    prompts.insert(0, prompt);
+    storage::save_prompts(&app, &prompts)?;
+
+    clipboard_monitor::flush_history(&app);
+
+    Ok(())
 }

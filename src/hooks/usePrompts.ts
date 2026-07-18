@@ -11,8 +11,13 @@ export function usePrompts(showToast: (msg: string, type?: 'success' | 'error') 
     try {
       setLoading(true);
       const data = await invoke<Prompt[]>('get_prompts');
-      // Sort by createdAt descending (most recent first)
-      const sorted = [...data].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      // Sort: pinned first (by pinnedAt desc), then by createdAt desc
+      const sorted = [...data].sort((a, b) => {
+        if (a.pinned && b.pinned) return new Date(b.pinnedAt || b.createdAt).getTime() - new Date(a.pinnedAt || a.createdAt).getTime();
+        if (a.pinned) return -1;
+        if (b.pinned) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
       setPrompts(sorted);
     } catch (err: any) {
       console.error('Failed to load texts:', err);
@@ -34,6 +39,7 @@ export function usePrompts(showToast: (msg: string, type?: 'success' | 'error') 
       text: text.trim(),
       tags: tags.map(t => t.trim().toLowerCase()).filter(Boolean),
       createdAt: new Date().toISOString(),
+      pinned: false,
     };
 
     const updatedPrompts = [newPrompt, ...prompts];
@@ -111,6 +117,31 @@ export function usePrompts(showToast: (msg: string, type?: 'success' | 'error') 
     }
   }, [prompts, fetchPrompts]);
 
+  const togglePin = useCallback(async (id: string) => {
+    const now = new Date().toISOString();
+    const updatedPrompts = prompts.map(p => {
+      if (p.id === id) {
+        const willPin = !p.pinned;
+        return { ...p, pinned: willPin, pinnedAt: willPin ? now : undefined };
+      }
+      return p;
+    });
+    // Sort: pinned first
+    const sorted = [...updatedPrompts].sort((a, b) => {
+      if (a.pinned && b.pinned) return new Date(b.pinnedAt || b.createdAt).getTime() - new Date(a.pinnedAt || a.createdAt).getTime();
+      if (a.pinned) return -1;
+      if (b.pinned) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+    setPrompts(sorted);
+    try {
+      await invoke('save_prompts', { prompts: sorted });
+    } catch (err: any) {
+      console.error('Failed to toggle pin:', err);
+      fetchPrompts();
+    }
+  }, [prompts, fetchPrompts]);
+
   return {
     prompts,
     loading,
@@ -118,6 +149,7 @@ export function usePrompts(showToast: (msg: string, type?: 'success' | 'error') 
     updatePrompt,
     deletePrompt,
     markPromptUsed,
+    togglePin,
     refresh: fetchPrompts,
   };
 }

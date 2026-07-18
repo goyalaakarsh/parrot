@@ -12,6 +12,8 @@ interface PromptListProps {
   onDeletePrompt: (id: string) => void;
   onCopyPrompt: (prompt: Prompt) => void;
   onPastePrompt: (prompt: Prompt) => void;
+  onTogglePin: (id: string) => void;
+  onTagClick: (tag: string) => void;
   onAddClick: () => void;
 }
 
@@ -25,6 +27,8 @@ export function PromptList({
   onDeletePrompt,
   onCopyPrompt,
   onPastePrompt,
+  onTogglePin,
+  onTagClick,
   onAddClick,
 }: PromptListProps) {
   if (prompts.length === 0 && !searchQuery) {
@@ -68,6 +72,8 @@ export function PromptList({
             onDelete={() => onDeletePrompt(prompt.id)}
             onCopy={() => onCopyPrompt(prompt)}
             onPaste={() => onPastePrompt(prompt)}
+            onTogglePin={() => onTogglePin(prompt.id)}
+            onTagClick={onTagClick}
           />
         ))}
       </div>

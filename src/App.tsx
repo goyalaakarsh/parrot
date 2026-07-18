@@ -13,17 +13,21 @@ import { TrayMenuPanel } from './components/TrayMenuPanel';
 import { CommandPalette } from './components/CommandPalette';
 import { Toast } from './components/Toast';
 import { Onboarding } from './components/Onboarding';
+import { HistoryPanel } from './components/HistoryPanel';
 
 import { usePrompts } from './hooks/usePrompts';
 import { useSearch } from './hooks/useSearch';
+import { useHistory } from './hooks/useHistory';
 import { useKeyboard } from './hooks/useKeyboard';
-import { Prompt } from './types';
+import { Prompt, HistoryEntry } from './types';
 
 export default function App() {
   const [view, setView] = useState<'list' | 'add' | 'edit' | 'settings' | 'about' | 'command-palette' | 'tray-menu'>('list');
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(true);
+  const [activeTab, setActiveTab] = useState<'texts' | 'history'>('texts');
+  const [activeTag, setActiveTag] = useState<string | null>(null);
 
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -39,10 +43,11 @@ export default function App() {
   }, []);
 
   // CRUD hooks
-  const { prompts, loading, addPrompt, updatePrompt, deletePrompt, markPromptUsed } = usePrompts(showToast);
+  const { prompts, loading, addPrompt, updatePrompt, deletePrompt, markPromptUsed, togglePin, refresh: refreshPrompts } = usePrompts(showToast);
+  const { historyEntries, loading: historyLoading, deleteHistoryEntry, promoteToPrompt, refresh: refreshHistory } = useHistory(showToast);
 
-  // Search filter hook
-  const filteredPrompts = useSearch(prompts, searchQuery);
+  // Search filter hook (for My Texts tab)
+  const filteredPrompts = useSearch(prompts, searchQuery, activeTag);
 
   // Focus search bar when returning to list view
   useEffect(() => {
@@ -57,7 +62,7 @@ export default function App() {
       await writeText(prompt.text);
       markPromptUsed(prompt.id);
       showToast('Copied!', 'success');
-      
+
       setTimeout(async () => {
         const win = getCurrentWindow();
         await win.hide();
@@ -83,15 +88,64 @@ export default function App() {
     }
   };
 
-  // Keyboard navigation handlers
+  // History Copy Flow
+  const handleCopyHistory = async (entry: HistoryEntry) => {
+    try {
+      await writeText(entry.text);
+      showToast('Copied!', 'success');
+      setTimeout(async () => {
+        const win = getCurrentWindow();
+        await win.hide();
+      }, 150);
+    } catch (err: any) {
+      showToast('Copy failed: ' + err.toString(), 'error');
+    }
+  };
+
+  // History Paste Flow
+  const handlePasteHistory = async (entry: HistoryEntry) => {
+    try {
+      const hwnd = await invoke<number>('get_foreground_hwnd');
+      await writeText(entry.text);
+      const win = getCurrentWindow();
+      await win.hide();
+      await invoke('paste_to_previous_window', { hwnd });
+    } catch (err: any) {
+      showToast('Auto-paste failed: ' + err.toString(), 'error');
+    }
+  };
+
+  // History Promote Flow
+  const handlePromoteHistory = async (entry: HistoryEntry) => {
+    try {
+      await promoteToPrompt(entry.id);
+      showToast('Saved to My Texts', 'success');
+    } catch (err: any) {
+      showToast('Failed to save: ' + err.toString(), 'error');
+    }
+  };
+
+  // Tab switching
+  const handleTabChange = useCallback((tab: 'texts' | 'history') => {
+    setActiveTab(tab);
+    setSearchQuery('');
+    setActiveTag(null);
+    setSearchFocused(true);
+    setSelectedIndex(0);
+    if (tab === 'history') {
+      refreshHistory();
+    }
+  }, [refreshHistory]);
+
+  // Keyboard navigation handlers (My Texts tab)
   const handleKeyboardEnter = (index: number) => {
-    if (filteredPrompts[index]) {
+    if (activeTab === 'texts' && filteredPrompts[index]) {
       handlePastePrompt(filteredPrompts[index]);
     }
   };
 
   const handleKeyboardShiftEnter = (index: number) => {
-    if (filteredPrompts[index]) {
+    if (activeTab === 'texts' && filteredPrompts[index]) {
       handleCopyPrompt(filteredPrompts[index]);
     }
   };
@@ -104,14 +158,16 @@ export default function App() {
 
   // Setup keyboard hook navigation
   const { selectedIndex, setSelectedIndex } = useKeyboard({
-    itemsCount: filteredPrompts.length,
+    itemsCount: activeTab === 'texts' ? filteredPrompts.length : historyEntries.length,
     onEnter: handleKeyboardEnter,
     onShiftEnter: handleKeyboardShiftEnter,
     onEscape: handleKeyboardEscape,
-    onCtrlN: () => setView('add'),
+    onCtrlN: () => {
+      if (activeTab === 'texts') setView('add');
+    },
     onCtrlComma: () => setView('settings'),
     onCtrlK: () => setView('command-palette'),
-    isActive: view === 'list' && !loading,
+    isActive: view === 'list' && !loading && !historyLoading,
   });
 
   // Commands for the command palette
@@ -121,7 +177,15 @@ export default function App() {
       label: 'Open Texts',
       category: 'Navigation',
       shortcut: 'Ctrl+Shift+P',
-      action: () => { setView('list'); setSearchFocused(true); },
+      action: () => { setView('list'); setActiveTab('texts'); setSearchFocused(true); },
+      enabled: true,
+    },
+    {
+      id: 'open-history',
+      label: 'Open History',
+      category: 'Navigation',
+      shortcut: 'Ctrl+Shift+H',
+      action: () => { setView('list'); setActiveTab('history'); setSearchFocused(true); },
       enabled: true,
     },
     {
@@ -146,11 +210,11 @@ export default function App() {
       category: 'Actions',
       shortcut: 'Shift+Enter',
       action: () => {
-        if (filteredPrompts[selectedIndex]) {
+        if (activeTab === 'texts' && filteredPrompts[selectedIndex]) {
           handleCopyPrompt(filteredPrompts[selectedIndex]);
         }
       },
-      enabled: filteredPrompts.length > 0,
+      enabled: activeTab === 'texts' && filteredPrompts.length > 0,
     },
     {
       id: 'paste-selected',
@@ -158,11 +222,11 @@ export default function App() {
       category: 'Actions',
       shortcut: 'Enter',
       action: () => {
-        if (filteredPrompts[selectedIndex]) {
+        if (activeTab === 'texts' && filteredPrompts[selectedIndex]) {
           handlePastePrompt(filteredPrompts[selectedIndex]);
         }
       },
-      enabled: filteredPrompts.length > 0,
+      enabled: activeTab === 'texts' && filteredPrompts.length > 0,
     },
     {
       id: 'toggle-palette',
@@ -188,7 +252,7 @@ export default function App() {
       action: () => { invoke('exit_app'); },
       enabled: true,
     },
-  ], [filteredPrompts, selectedIndex, handleCopyPrompt, handlePastePrompt]);
+  ], [filteredPrompts, selectedIndex, handleCopyPrompt, handlePastePrompt, activeTab]);
 
   // Listen for Tauri events
   useEffect(() => {
@@ -218,6 +282,11 @@ export default function App() {
       setView('command-palette');
     });
 
+    const unlistenQuickCapture = listen('quick-capture-saved', () => {
+      showToast('Text saved!', 'success');
+      refreshPrompts();
+    });
+
     return () => {
       unlistenOpenList.then((f) => f());
       unlistenOpenSettings.then((f) => f());
@@ -225,8 +294,9 @@ export default function App() {
       unlistenOpenAdd.then((f) => f());
       unlistenOpenAbout.then((f) => f());
       unlistenOpenPalette.then((f) => f());
+      unlistenQuickCapture.then((f) => f());
     };
-  }, []);
+  }, [showToast, refreshPrompts]);
 
   const handleAddSave = async (title: string, text: string, tags: string[]) => {
     const success = await addPrompt(title, text, tags);
@@ -263,7 +333,7 @@ export default function App() {
   }
 
   const screenName: Record<string, string> = {
-    list: 'Texts',
+    list: activeTab === 'history' ? 'History' : 'Texts',
     add: 'Add Text',
     edit: 'Edit Text',
     settings: 'Settings',
@@ -298,27 +368,52 @@ export default function App() {
             onOpenSettings={() => setView('settings')}
             onOpenPalette={() => setView('command-palette')}
             isFocused={searchFocused}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            activeTag={activeTag}
+            onClearTag={() => setActiveTag(null)}
           />
-          {loading ? (
-            <div role="status" className="flex-1 flex items-center justify-center">
-              <span className="text-xs text-muted">Loading texts...</span>
-            </div>
+          {activeTab === 'texts' ? (
+            loading ? (
+              <div role="status" className="flex-1 flex items-center justify-center">
+                <span className="text-xs text-muted">Loading texts...</span>
+              </div>
+            ) : (
+              <PromptList
+                prompts={filteredPrompts}
+                totalCount={prompts.length}
+                searchQuery={searchQuery}
+                selectedIndex={selectedIndex}
+                onSelectPrompt={setSelectedIndex}
+                onEditPrompt={(prompt) => {
+                  setEditingPrompt(prompt);
+                  setView('edit');
+                }}
+                onDeletePrompt={deletePrompt}
+                onCopyPrompt={handleCopyPrompt}
+                onPastePrompt={handlePastePrompt}
+                onTogglePin={togglePin}
+                onTagClick={(tag) => {
+                  setActiveTag(tag);
+                  setSearchQuery('');
+                }}
+                onAddClick={() => setView('add')}
+              />
+            )
           ) : (
-            <PromptList
-              prompts={filteredPrompts}
-              totalCount={prompts.length}
-              searchQuery={searchQuery}
-              selectedIndex={selectedIndex}
-              onSelectPrompt={setSelectedIndex}
-              onEditPrompt={(prompt) => {
-                setEditingPrompt(prompt);
-                setView('edit');
-              }}
-              onDeletePrompt={deletePrompt}
-              onCopyPrompt={handleCopyPrompt}
-              onPastePrompt={handlePastePrompt}
-              onAddClick={() => setView('add')}
-            />
+            historyLoading ? (
+              <div role="status" className="flex-1 flex items-center justify-center">
+                <span className="text-xs text-muted">Loading history...</span>
+              </div>
+            ) : (
+              <HistoryPanel
+                entries={historyEntries}
+                onCopy={handleCopyHistory}
+                onPaste={handlePasteHistory}
+                onPromote={handlePromoteHistory}
+                onDelete={deleteHistoryEntry}
+              />
+            )
           )}
         </>
       )}

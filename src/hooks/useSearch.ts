@@ -1,31 +1,37 @@
 import { useMemo } from 'react';
 import { Prompt } from '../types';
 
-export function useSearch(prompts: Prompt[], query: string) {
+export function useSearch(prompts: Prompt[], query: string, activeTag: string | null = null) {
   return useMemo(() => {
+    let filtered = prompts;
+
+    // Apply tag filter first
+    if (activeTag) {
+      filtered = filtered.filter(prompt =>
+        prompt.tags.some(tag => tag.toLowerCase() === activeTag.toLowerCase())
+      );
+    }
+
+    // Then apply text search
     if (!query.trim()) {
-      return prompts;
+      return filtered;
     }
 
     const lowerQuery = query.toLowerCase().trim();
 
-    return prompts.filter(prompt => {
-      // 1. Direct title match
+    return filtered.filter(prompt => {
       const titleMatch = prompt.title.toLowerCase().includes(lowerQuery);
       if (titleMatch) return true;
 
-      // 2. Direct text match
       const textMatch = prompt.text.toLowerCase().includes(lowerQuery);
       if (textMatch) return true;
 
-      // 3. Direct tag match
       const tagsMatch = prompt.tags.some(tag => tag.toLowerCase().includes(lowerQuery));
       if (tagsMatch) return true;
 
-      // 4. Multi-word match: if query has multiple words, check if all words are present somewhere
       const words = lowerQuery.split(/\s+/).filter(Boolean);
       if (words.length > 1) {
-        return words.every(word => 
+        return words.every(word =>
           prompt.title.toLowerCase().includes(word) ||
           prompt.text.toLowerCase().includes(word) ||
           prompt.tags.some(tag => tag.toLowerCase().includes(word))
@@ -34,5 +40,5 @@ export function useSearch(prompts: Prompt[], query: string) {
 
       return false;
     });
-  }, [prompts, query]);
+  }, [prompts, query, activeTag]);
 }

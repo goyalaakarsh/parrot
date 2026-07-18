@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Keyboard, Power } from 'lucide-react';
+import { ArrowLeft, Keyboard, Power, Zap } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { Settings } from '../types';
@@ -11,8 +11,9 @@ interface SettingsPanelProps {
 
 export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
   const [shortcut, setShortcut] = useState('CommandOrControl+Shift+Space');
+  const [quickCaptureShortcut, setQuickCaptureShortcut] = useState('CommandOrControl+Shift+C');
   const [autostart, setAutostart] = useState(true);
-  const [isCapturing, setIsCapturing] = useState(false);
+  const [isCapturing, setIsCapturing] = useState<'main' | 'quick' | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -22,6 +23,7 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
         setLoading(true);
         const savedSettings = await invoke<Settings>('get_settings');
         setShortcut(savedSettings.globalShortcut);
+        setQuickCaptureShortcut(savedSettings.quickCaptureShortcut || 'CommandOrControl+Shift+C');
 
         const autostartEnabled = await isEnabled();
         setAutostart(autostartEnabled);
@@ -82,8 +84,13 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
         }
 
         keys.push(keyName);
-        setShortcut(keys.join('+'));
-        setIsCapturing(false);
+        const combo = keys.join('+');
+        if (isCapturing === 'main') {
+          setShortcut(combo);
+        } else {
+          setQuickCaptureShortcut(combo);
+        }
+        setIsCapturing(null);
       }
     };
 
@@ -108,6 +115,7 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
       await invoke('save_settings', {
         settings: {
           globalShortcut: shortcut,
+          quickCaptureShortcut,
           launchAtStartup: autostart,
         },
       });
@@ -154,34 +162,6 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
           </button>
           <h2 className="text-sm font-semibold text-primary">Settings</h2>
         </div>
-
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted">
-            <Keyboard size={12} aria-hidden="true" />
-            <span>GLOBAL SHORTCUT</span>
-          </div>
-          <div className="relative">
-            <input
-              type="text"
-              readOnly
-              value={isCapturing ? 'Press keys...' : shortcut}
-              onClick={() => setIsCapturing(true)}
-              aria-label="Global shortcut key combination"
-              aria-describedby="shortcut-hint"
-              className={`w-full h-9 px-3 text-[13px] rounded-md border bg-surface cursor-pointer text-left transition-all ${
-                isCapturing
-                  ? 'border-accent text-accent animate-pulse ring-1 ring-accent'
-                  : 'border-border text-primary hover:border-accent-dim'
-              }`}
-            />
-            {!isCapturing && (
-              <span id="shortcut-hint" className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">
-                Click to edit
-              </span>
-            )}
-          </div>
-        </div>
-
         <div className="flex items-center justify-between p-3 rounded-md border border-border bg-surface">
           <div className="flex items-center gap-2">
             <Power size={14} className="text-muted" aria-hidden="true" />
@@ -208,6 +188,62 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
           </button>
         </div>
       </div>
+
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted">
+            <Keyboard size={12} aria-hidden="true" />
+            <span>TOGGLE SHORTCUT</span>
+          </div>
+          <div className="relative">
+            <input
+              type="text"
+              readOnly
+              value={isCapturing === 'main' ? 'Press keys...' : shortcut}
+              onClick={() => setIsCapturing('main')}
+              aria-label="Toggle shortcut key combination"
+              aria-describedby="shortcut-hint"
+              className={`w-full h-9 px-3 text-[13px] rounded-md border bg-surface cursor-pointer text-left transition-all ${
+                isCapturing === 'main'
+                  ? 'border-accent text-accent animate-pulse ring-1 ring-accent'
+                  : 'border-border text-primary hover:border-accent-dim'
+              }`}
+            />
+            {!isCapturing && (
+              <span id="shortcut-hint" className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">
+                Click to edit
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted">
+            <Zap size={12} aria-hidden="true" />
+            <span>QUICK CAPTURE</span>
+          </div>
+          <p className="text-[10px] text-muted -mt-1">Save text from any app as a new prompt</p>
+          <div className="relative">
+            <input
+              type="text"
+              readOnly
+              value={isCapturing === 'quick' ? 'Press keys...' : quickCaptureShortcut}
+              onClick={() => setIsCapturing('quick')}
+              aria-label="Quick capture shortcut key combination"
+              aria-describedby="quick-shortcut-hint"
+              className={`w-full h-9 px-3 text-[13px] rounded-md border bg-surface cursor-pointer text-left transition-all ${
+                isCapturing === 'quick'
+                  ? 'border-accent text-accent animate-pulse ring-1 ring-accent'
+                  : 'border-border text-primary hover:border-accent-dim'
+              }`}
+            />
+            {!isCapturing && (
+              <span id="quick-shortcut-hint" className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">
+                Click to edit
+              </span>
+            )}
+          </div>
+        </div>
+
 
       <button
         onClick={handleSave}

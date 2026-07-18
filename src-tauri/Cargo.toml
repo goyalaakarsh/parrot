@@ -29,4 +29,5 @@ uuid = { version = "1", features = ["v4"] }
 enigo = "0.2"
 windows = { version = "0.58", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation", "Win32_Graphics_Gdi"] }
 chrono = { version = "0.4", features = ["serde"] }
+arboard = "3"
 
