@@ -44,7 +44,7 @@ export function PromptList({
         <button
           onClick={onAddClick}
           aria-label="Add your first text"
-          className="px-3.5 py-1.5 rounded-lg bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-95 transition-all shadow-md shadow-accent/10 flex items-center gap-2"
+          className="px-3.5 py-1.5 rounded-lg bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-95 transition-[opacity,transform] shadow-md shadow-accent/10 flex items-center gap-2"
         >
           <span>+ Add your first text</span>
           <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-accent-dim border border-accent/40 text-background font-sans font-medium leading-none opacity-85">Ctrl+N</kbd>
@@ -80,7 +80,7 @@ export function PromptList({
       <button
         onClick={onAddClick}
         aria-label="Add new text"
-        className="shrink-0 w-full flex items-center justify-center gap-2 py-2 mt-1.5 text-muted hover:text-accent text-xs font-semibold transition-all duration-100"
+        className="shrink-0 w-full flex items-center justify-center gap-2 py-2 mt-1.5 text-muted hover:text-accent text-xs font-semibold transition-colors duration-100 focus:outline-none focus:ring-1 focus:ring-accent rounded"
       >
         <Plus size={13} aria-hidden="true" />
         <span>Add Text</span>

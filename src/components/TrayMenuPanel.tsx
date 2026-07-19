@@ -61,7 +61,7 @@ export function TrayMenuPanel() {
           onClick={() => item.action()}
           onMouseEnter={() => setFocusedIndex(idx)}
         >
-          <span className="shrink-0 text-muted">{item.icon}</span>
+            <span className="shrink-0 text-muted" aria-hidden="true">{item.icon}</span>
           <span className="flex-1">{item.label}</span>
           {item.shortcut && (
             <kbd className="text-[9px] px-1 py-0.5 rounded bg-[#2d2d2d] border border-[#3a3a3a] text-[#888] font-sans">
@@ -84,7 +84,7 @@ export function TrayMenuPanel() {
             onClick={() => item.action()}
             onMouseEnter={() => setFocusedIndex(globalIdx)}
           >
-            <span className="shrink-0 text-muted">{item.icon}</span>
+          <span className="shrink-0 text-muted" aria-hidden="true">{item.icon}</span>
             <span className="flex-1">{item.label}</span>
           </button>
         );

@@ -128,7 +128,7 @@ export function HistoryPanel({
               role="option"
               aria-selected={isSelected}
               onClick={() => onSelectPrompt(idx)}
-              className={`group w-full flex flex-col p-3 rounded-md border text-left cursor-pointer transition-all duration-100 ${
+              className={`group w-full flex flex-col p-3 rounded-md border text-left cursor-pointer transition-[border-color,background-color] duration-100 ${
                 isSelected
                   ? 'border-accent bg-accent-dim/15'
                   : 'border-transparent bg-surface hover:border-border'
@@ -163,7 +163,7 @@ export function HistoryPanel({
                 <p className={`text-xs text-muted break-words whitespace-pre-line text-left ${
                   isSelected ? 'line-clamp-5' : 'line-clamp-3'
                 }`}>
-                  {entry.text.length > 150 ? `${entry.text.substring(0, 150)}...` : entry.text}
+                  {entry.text.length > 150 ? `${entry.text.substring(0, 150)}…` : entry.text}
                 </p>
               )}
 
@@ -179,7 +179,7 @@ export function HistoryPanel({
                 </span>
               </div>
 
-              <div className={`flex items-center justify-end gap-1.5 w-full overflow-hidden transition-all duration-100 ${
+              <div className={`flex items-center justify-end gap-1.5 w-full overflow-hidden transition-[height,opacity,margin,padding] duration-100 ${
                 isSelected
                   ? 'h-6 opacity-100 mt-2.5 pt-0.5'
                   : 'h-0 opacity-0 group-hover:h-6 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-0.5'

@@ -62,7 +62,7 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
     }
 
     const firstLine = text.split('\n')[0].trim();
-    const autoTitle = firstLine.length > 40 ? `${firstLine.substring(0, 40)}...` : firstLine;
+    const autoTitle = firstLine.length > 40 ? `${firstLine.substring(0, 40)}…` : firstLine;
 
     setIsSubmitting(true);
     const success = await onSave(autoTitle, text, parsedTags);
@@ -92,7 +92,7 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
             type="button"
             onClick={onCancel}
             aria-label="Back to texts"
-            className="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-all"
+            className="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-[color,background-color]"
           >
             <ArrowLeft size={16} aria-hidden="true" />
             <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none">Esc</kbd>
@@ -116,9 +116,9 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
             rows={4}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Type or paste your text template here..."
+            placeholder="Type or paste your text template here…"
             aria-label="Text content"
-            className="px-3 py-2 text-[13px] rounded-md bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all resize-none min-h-[90px]"
+            className="px-3 py-2 text-[13px] rounded-md bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-[border-color,box-shadow] resize-none min-h-[90px]"
             required
             autoFocus
           />
@@ -133,7 +133,7 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
             onChange={(e) => setTagsInput(e.target.value)}
             placeholder="e.g. react, code-review, helper"
             aria-label="Tags, comma separated"
-            className="h-9 px-3 text-[13px] rounded-md bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+            className="h-9 px-3 text-[13px] rounded-md bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-[border-color,box-shadow]"
           />
           
           {parsedTags.length > 0 && (
@@ -156,7 +156,7 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
           type="button"
           onClick={onCancel}
           disabled={isSubmitting}
-          className="flex-1 h-9 rounded-md bg-surface border border-border text-xs font-semibold text-muted hover:text-primary transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
+          className="flex-1 h-9 rounded-md bg-surface border border-border text-xs font-semibold text-muted hover:text-primary transition-[color] active:scale-[0.98] transition-transform flex items-center justify-center gap-1.5"
         >
           <span>Cancel</span>
           <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Esc</kbd>
@@ -164,9 +164,9 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex-1 h-9 rounded-md bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+          className="flex-1 h-9 rounded-md bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-[opacity,transform] disabled:opacity-50 flex items-center justify-center gap-1.5"
         >
-          <span>{isSubmitting ? 'Saving...' : 'Save Text'}</span>
+          <span>{isSubmitting ? 'Saving…' : 'Save Text'}</span>
           <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-accent border border-accent-dim text-background font-sans font-medium leading-none opacity-85 shadow-sm">Ctrl+Enter</kbd>
         </button>
       </div>

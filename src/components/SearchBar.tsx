@@ -16,12 +16,21 @@ interface SearchBarProps {
 export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFocused, activeTab, onTabChange, activeTag, onClearTag }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-focus on mount and when isFocused changes
   useEffect(() => {
     if (isFocused && inputRef.current) {
       inputRef.current.focus();
       inputRef.current.select();
     }
   }, [isFocused]);
+
+  // Also focus on initial mount
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, []);
 
   return (
     <div className="flex flex-col gap-1.5 mb-3 shrink-0">
@@ -33,9 +42,9 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder={activeTab === 'texts' ? 'Search texts or tags...' : 'Search history...'}
+            placeholder={activeTab === 'texts' ? 'Search texts or tags…' : 'Search history…'}
             aria-label={activeTab === 'texts' ? 'Search texts' : 'Search history'}
-            className="w-full h-9 px-3 text-sm font-medium rounded-lg bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all duration-100"
+            className="w-full h-9 px-3 text-sm font-medium rounded-lg bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-[border-color,box-shadow] duration-100"
           />
           {value && (
             <button
@@ -51,7 +60,7 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
           onClick={onOpenPalette}
           title="Command Palette (Ctrl+K)"
           aria-label="Command Palette"
-          className="flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-all duration-100"
+          className="flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-[border-color,color] duration-100"
         >
           <Command size={15} aria-hidden="true" />
           <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium leading-none">Ctrl+K</kbd>
@@ -60,7 +69,7 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
           onClick={onOpenSettings}
           title="Settings (Ctrl+,)"
           aria-label="Settings"
-          className="flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-all duration-100"
+          className="flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-[border-color,color] duration-100"
         >
           <Settings size={15} aria-hidden="true" />
           <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium leading-none">Ctrl+,</kbd>
@@ -68,10 +77,12 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-border pb-1.5">
+      <div role="tablist" className="flex items-center gap-1 border-b border-border pb-1.5">
         <button
+          role="tab"
+          aria-selected={activeTab === 'texts'}
           onClick={() => onTabChange('texts')}
-          className={`text-xs font-semibold px-2 py-1 rounded transition-all ${
+          className={`text-xs font-semibold px-2 py-1 rounded transition-colors ${
             activeTab === 'texts'
               ? 'text-accent bg-accent-dim/15'
               : 'text-muted hover:text-primary'
@@ -80,8 +91,10 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
           My Texts
         </button>
         <button
+          role="tab"
+          aria-selected={activeTab === 'history'}
           onClick={() => onTabChange('history')}
-          className={`text-xs font-semibold px-2 py-1 rounded transition-all ${
+          className={`text-xs font-semibold px-2 py-1 rounded transition-colors ${
             activeTab === 'history'
               ? 'text-accent bg-accent-dim/15'
               : 'text-muted hover:text-primary'
@@ -99,7 +112,7 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
             <button
               onClick={onClearTag}
               aria-label="Clear tag filter"
-              className="hover:text-accent-dim transition-all"
+              className="hover:text-accent-dim transition-colors"
             >
               <X size={11} />
             </button>

@@ -11,7 +11,7 @@ export function AboutPanel({ onBack }: AboutPanelProps) {
         <button
           onClick={onBack}
           aria-label="Back to texts"
-          className="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-all"
+          className="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-[color,background-color]"
         >
           <ArrowLeft size={16} aria-hidden="true" />
           <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none">Esc</kbd>
@@ -41,12 +41,12 @@ export function AboutPanel({ onBack }: AboutPanelProps) {
 
         <div className="flex items-center gap-3 mt-1">
           <div className="flex items-center gap-1.5 text-[10px] text-muted">
-            <Command size={11} />
+            <Command size={11} aria-hidden="true" />
             <span>Ctrl+K</span>
           </div>
           <span className="text-border">|</span>
           <div className="flex items-center gap-1.5 text-[10px] text-muted">
-            <Github size={11} />
+            <Github size={11} aria-hidden="true" />
             <span>Parrot</span>
           </div>
         </div>

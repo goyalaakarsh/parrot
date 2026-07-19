@@ -99,8 +99,8 @@ export function PromptCard({
   const displayDescription = prompt.text.trim();
 
   const truncatedDescription = isSelected
-    ? (displayDescription.length > 500 ? `${displayDescription.substring(0, 500)}...` : displayDescription)
-    : (displayDescription.length > 100 ? `${displayDescription.substring(0, 100)}...` : displayDescription);
+    ? (displayDescription.length > 500 ? `${displayDescription.substring(0, 500)}…` : displayDescription)
+    : (displayDescription.length > 100 ? `${displayDescription.substring(0, 100)}…` : displayDescription);
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -135,7 +135,7 @@ export function PromptCard({
           handleCardClick();
         }
       }}
-      className={`relative group w-full flex flex-col p-3 rounded-md border text-left cursor-pointer transition-all duration-100 ${
+      className={`relative group w-full flex flex-col p-3 rounded-md border text-left cursor-pointer transition-[border-color,background-color] duration-100 ${
         isSelected
           ? 'border-accent bg-accent-dim/15'
           : 'border-transparent bg-surface hover:border-border'
@@ -198,7 +198,7 @@ export function PromptCard({
             </div>
           )}
 
-          <div className={`flex items-center justify-end gap-1.5 w-full overflow-hidden transition-all duration-100 ${
+          <div className={`flex items-center justify-end gap-1.5 w-full overflow-hidden transition-[height,opacity,margin,padding] duration-100 ${
             isSelected 
               ? 'h-6 opacity-100 mt-2.5 pt-0.5' 
               : 'h-0 opacity-0 group-hover:h-6 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-0.5'

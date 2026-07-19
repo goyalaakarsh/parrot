@@ -8,10 +8,14 @@ interface UseKeyboardProps {
   onCtrlN?: () => void;
   onCtrlComma?: () => void;
   onCtrlK?: () => void;
+  onCtrlShiftP?: () => void;
+  onCtrlShiftH?: () => void;
+  onCtrlShiftA?: () => void;
+  onCtrlQ?: () => void;
   isActive: boolean;
 }
 
-export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, isActive }: UseKeyboardProps) {
+export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlShiftP, onCtrlShiftH, onCtrlShiftA, onCtrlQ, isActive }: UseKeyboardProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   // Reset selected index if items count changes
@@ -25,6 +29,34 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
       if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         onCtrlK?.();
+        return;
+      }
+
+      // Allow Ctrl+Shift+P from anywhere
+      if (e.key === 'P' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+        e.preventDefault();
+        onCtrlShiftP?.();
+        return;
+      }
+
+      // Allow Ctrl+Shift+H from anywhere
+      if (e.key === 'H' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+        e.preventDefault();
+        onCtrlShiftH?.();
+        return;
+      }
+
+      // Allow Ctrl+Shift+A from anywhere
+      if (e.key === 'A' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+        e.preventDefault();
+        onCtrlShiftA?.();
+        return;
+      }
+
+      // Allow Ctrl+Q from anywhere
+      if (e.key === 'q' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        onCtrlQ?.();
         return;
       }
 
@@ -67,7 +99,7 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, selectedIndex, isActive]);
+  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlShiftP, onCtrlShiftH, onCtrlShiftA, onCtrlQ, selectedIndex, isActive]);
 
   return { selectedIndex, setSelectedIndex };
 }

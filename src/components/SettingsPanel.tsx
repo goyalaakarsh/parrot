@@ -138,7 +138,7 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <span className="text-xs text-muted">Loading settings...</span>
+        <span className="text-xs text-muted">Loading settings…</span>
       </div>
     );
   }
@@ -150,7 +150,7 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
           <button
             onClick={onBack}
             aria-label="Back to texts"
-            className="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-all"
+            className="flex items-center gap-1.5 px-1.5 py-1 rounded-md text-muted hover:text-accent hover:bg-surface-hover transition-[color,background-color]"
           >
             <ArrowLeft size={16} aria-hidden="true" />
             <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none">Esc</kbd>
@@ -191,11 +191,11 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
             <input
               type="text"
               readOnly
-              value={isCapturing === 'main' ? 'Press keys...' : shortcut}
+              value={isCapturing === 'main' ? 'Press keys…' : shortcut}
               onClick={() => setIsCapturing('main')}
               aria-label="Toggle shortcut key combination"
               aria-describedby="shortcut-hint"
-              className={`w-full h-9 px-3 text-[13px] rounded-md border bg-surface cursor-pointer text-left transition-all ${
+              className={`w-full h-9 px-3 text-[13px] rounded-md border bg-surface cursor-pointer text-left transition-[border-color,color,box-shadow] ${
                 isCapturing === 'main'
                   ? 'border-accent text-accent animate-pulse ring-1 ring-accent'
                   : 'border-border text-primary hover:border-accent-dim'
@@ -219,11 +219,11 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
             <input
               type="text"
               readOnly
-              value={isCapturing === 'quick' ? 'Press keys...' : quickCaptureShortcut}
+              value={isCapturing === 'quick' ? 'Press keys…' : quickCaptureShortcut}
               onClick={() => setIsCapturing('quick')}
               aria-label="Quick capture shortcut key combination"
               aria-describedby="quick-shortcut-hint"
-              className={`w-full h-9 px-3 text-[13px] rounded-md border bg-surface cursor-pointer text-left transition-all ${
+              className={`w-full h-9 px-3 text-[13px] rounded-md border bg-surface cursor-pointer text-left transition-[border-color,color,box-shadow] ${
                 isCapturing === 'quick'
                   ? 'border-accent text-accent animate-pulse ring-1 ring-accent'
                   : 'border-border text-primary hover:border-accent-dim'
@@ -249,7 +249,8 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
               <select
                 value={textRetention}
                 onChange={(e) => setTextRetention(Number(e.target.value))}
-                className="h-7 px-2 text-xs rounded-md bg-surface-hover border border-border text-primary focus:outline-none focus:border-accent cursor-pointer"
+                className="h-7 px-2 text-xs rounded-md bg-surface-hover border border-border text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent cursor-pointer"
+                style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-primary)' }}
               >
                 {RETENTION_OPTIONS.map((d) => (
                   <option key={d} value={d}>{d} days</option>
@@ -265,7 +266,8 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
               <select
                 value={imageRetention}
                 onChange={(e) => setImageRetention(Number(e.target.value))}
-                className="h-7 px-2 text-xs rounded-md bg-surface-hover border border-border text-primary focus:outline-none focus:border-accent cursor-pointer"
+                className="h-7 px-2 text-xs rounded-md bg-surface-hover border border-border text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent cursor-pointer"
+                style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-primary)' }}
               >
                 {RETENTION_OPTIONS.map((d) => (
                   <option key={d} value={d}>{d} days</option>
@@ -287,9 +289,9 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="w-full h-9 rounded-md bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-all mt-4"
+        className="w-full h-9 rounded-md bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-[opacity,transform] mt-4"
       >
-        {saving ? 'Saving...' : 'Save Settings'}
+        {saving ? 'Saving…' : 'Save Settings'}
       </button>
     </div>
   );
