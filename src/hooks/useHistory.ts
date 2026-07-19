@@ -1,26 +1,29 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { HistoryEntry } from '../types';
+
+const POLL_INTERVAL = 1000;
 
 export function useHistory(showToast: (msg: string, type?: 'success' | 'error') => void) {
   const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const pollRef = useRef<ReturnType<typeof setInterval>>();
 
   const fetchHistory = useCallback(async () => {
     try {
-      setLoading(true);
       const data = await invoke<HistoryEntry[]>('get_history');
       setHistoryEntries(data);
     } catch (err: any) {
       console.error('Failed to load history:', err);
-      showToast(err.toString() || 'Failed to load history', 'error');
-    } finally {
-      setLoading(false);
     }
-  }, [showToast]);
+  }, []);
 
   useEffect(() => {
-    fetchHistory();
+    fetchHistory().finally(() => setLoading(false));
+    pollRef.current = setInterval(fetchHistory, POLL_INTERVAL);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
   }, [fetchHistory]);
 
   const deleteHistoryEntry = useCallback(async (id: string) => {
@@ -30,9 +33,8 @@ export function useHistory(showToast: (msg: string, type?: 'success' | 'error') 
       await invoke('delete_history_entry', { entryId: id });
     } catch (err: any) {
       console.error('Failed to delete history entry:', err);
-      fetchHistory();
     }
-  }, [historyEntries, fetchHistory]);
+  }, [historyEntries]);
 
   const promoteToPrompt = useCallback(async (entryId: string) => {
     const updated = historyEntries.filter(e => e.id !== entryId);
@@ -41,9 +43,8 @@ export function useHistory(showToast: (msg: string, type?: 'success' | 'error') 
       await invoke('promote_to_prompt', { entryId });
     } catch (err: any) {
       console.error('Failed to promote history entry:', err);
-      fetchHistory();
     }
-  }, [historyEntries, fetchHistory]);
+  }, [historyEntries]);
 
   const clearHistory = useCallback(async () => {
     setHistoryEntries([]);
@@ -52,9 +53,8 @@ export function useHistory(showToast: (msg: string, type?: 'success' | 'error') 
       showToast('History cleared', 'success');
     } catch (err: any) {
       console.error('Failed to clear history:', err);
-      fetchHistory();
     }
-  }, [fetchHistory, showToast]);
+  }, [showToast]);
 
   return {
     historyEntries,

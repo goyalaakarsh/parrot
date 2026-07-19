@@ -171,10 +171,14 @@ export default function App() {
   }, [activeTab, filteredPrompts, displayHistory, handleCopyPrompt, handleCopyHistory]);
 
   const handleKeyboardEscape = useCallback(async () => {
+    if (searchQuery.length > 0) {
+      setSearchQuery('');
+      return;
+    }
     const win = getCurrentWindow();
     await win.hide();
     await invoke('paste_to_previous_window', { hwnd: 0 });
-  }, []);
+  }, [searchQuery]);
 
   // Setup keyboard hook navigation
   const { selectedIndex, setSelectedIndex } = useKeyboard({
@@ -187,6 +191,18 @@ export default function App() {
     },
     onCtrlComma: () => setView('settings'),
     onCtrlK: () => setView('command-palette'),
+    onCtrlShiftP: () => {
+      setView('list');
+      setActiveTab('texts');
+      setSearchFocused(true);
+    },
+    onCtrlShiftH: () => {
+      setView('list');
+      setActiveTab('history');
+      setSearchFocused(true);
+    },
+    onCtrlShiftA: () => setView('about'),
+    onCtrlQ: () => invoke('exit_app'),
     isActive: view === 'list' && (activeTab === 'texts' ? !loading : !historyLoading),
   });
 
@@ -261,6 +277,14 @@ export default function App() {
       enabled: activeTab === 'texts' && filteredPrompts.length > 0,
     },
     {
+      id: 'clear-search',
+      label: 'Clear Search',
+      category: 'Actions',
+      shortcut: 'Escape',
+      action: () => setSearchQuery(''),
+      enabled: searchQuery.length > 0,
+    },
+    {
       id: 'toggle-palette',
       label: 'Command Palette',
       category: 'App',
@@ -284,7 +308,7 @@ export default function App() {
       action: () => { invoke('exit_app'); },
       enabled: true,
     },
-  ], [filteredPrompts, selectedIndex, handleCopyPrompt, handlePastePrompt, activeTab]);
+  ], [filteredPrompts, selectedIndex, handleCopyPrompt, handlePastePrompt, activeTab, searchQuery]);
 
   // Listen for Tauri events
   useEffect(() => {
@@ -292,6 +316,7 @@ export default function App() {
       setView('list');
       setSearchQuery('');
       setSearchFocused(true);
+      refreshHistory();
     });
 
     const unlistenOpenSettings = listen('open-settings', () => {
@@ -319,6 +344,10 @@ export default function App() {
       refreshPrompts();
     });
 
+    const unlistenHistoryUpdated = listen('history-updated', () => {
+      refreshHistory();
+    });
+
     return () => {
       unlistenOpenList.then((f) => f());
       unlistenOpenSettings.then((f) => f());
@@ -327,8 +356,9 @@ export default function App() {
       unlistenOpenAbout.then((f) => f());
       unlistenOpenPalette.then((f) => f());
       unlistenQuickCapture.then((f) => f());
+      unlistenHistoryUpdated.then((f) => f());
     };
-  }, [showToast, refreshPrompts]);
+  }, [showToast, refreshPrompts, refreshHistory]);
 
   const handleAddSave = async (title: string, text: string, tags: string[]) => {
     const success = await addPrompt(title, text, tags);
@@ -408,7 +438,7 @@ export default function App() {
           {activeTab === 'texts' ? (
             loading ? (
               <div role="status" className="flex-1 flex items-center justify-center">
-                <span className="text-xs text-muted">Loading texts...</span>
+                <span className="text-xs text-muted">Loading texts…</span>
               </div>
             ) : (
               <PromptList
@@ -435,7 +465,7 @@ export default function App() {
           ) : (
             historyLoading ? (
               <div role="status" className="flex-1 flex items-center justify-center">
-                <span className="text-xs text-muted">Loading history...</span>
+                <span className="text-xs text-muted">Loading history…</span>
               </div>
             ) : (
               <HistoryPanel

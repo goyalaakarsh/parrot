@@ -1,13 +1,12 @@
 use std::sync::Mutex;
 use std::thread;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, Emitter};
 use sha2::{Sha256, Digest};
 
 use crate::storage::{HistoryEntry, save_history, save_image_to_disk};
 
 const MAX_ENTRIES: usize = 500;
-const WM_DRAWCLIPBOARD: u32 = 0x0308;
-const WM_CHANGECBCHAIN: u32 = 0x030D;
+const WM_CLIPBOARDUPDATE: u32 = 0x031D;
 
 pub struct HistoryState {
     pub entries: Vec<HistoryEntry>,
@@ -19,7 +18,6 @@ struct MonitorState {
     clipboard: arboard::Clipboard,
     last_text: Option<String>,
     last_image_hash: Option<String>,
-    next_viewer: windows::Win32::Foundation::HWND,
 }
 
 pub fn start_clipboard_monitoring(app: AppHandle) {
@@ -34,17 +32,16 @@ pub fn start_clipboard_monitoring(app: AppHandle) {
             clipboard,
             last_text: None,
             last_image_hash: None,
-            next_viewer: windows::Win32::Foundation::HWND::default(),
         });
         let state_ptr = Box::into_raw(state);
 
         unsafe {
             use windows::Win32::Foundation::{BOOL, HWND, LPARAM, LRESULT, WPARAM};
-            use windows::Win32::System::DataExchange::SetClipboardViewer;
+            use windows::Win32::System::DataExchange::AddClipboardFormatListener;
             use windows::Win32::System::LibraryLoader::GetModuleHandleW;
             use windows::Win32::UI::WindowsAndMessaging::{
                 CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW,
-                GetMessageW, GetWindowLongPtrW, RegisterClassW, SendMessageW,
+                GetMessageW, GetWindowLongPtrW, RegisterClassW,
                 SetWindowLongPtrW, CW_USEDEFAULT, GWLP_USERDATA, MSG, WNDCLASSW,
             };
             use windows::core::PCWSTR;
@@ -59,27 +56,11 @@ pub fn start_clipboard_monitoring(app: AppHandle) {
                 wparam: WPARAM,
                 lparam: LPARAM,
             ) -> LRESULT {
-                if msg == WM_DRAWCLIPBOARD {
+                if msg == WM_CLIPBOARDUPDATE {
                     unsafe {
                         let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut MonitorState;
                         if let Some(s) = ptr.as_mut() {
                             handle_clipboard_change(&mut s.clipboard, &mut s.last_text, &mut s.last_image_hash, &s.app);
-                            if !s.next_viewer.is_invalid() {
-                                let _ = SendMessageW(s.next_viewer, msg, wparam, lparam);
-                            }
-                        }
-                    }
-                    return LRESULT(0);
-                } else if msg == WM_CHANGECBCHAIN {
-                    unsafe {
-                        let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut MonitorState;
-                        if let Some(s) = ptr.as_mut() {
-                            let removed = HWND(wparam.0 as *mut _);
-                            if s.next_viewer == removed {
-                                s.next_viewer = HWND(lparam.0 as *mut _);
-                            } else if !s.next_viewer.is_invalid() {
-                                let _ = SendMessageW(s.next_viewer, msg, wparam, lparam);
-                            }
                         }
                     }
                     return LRESULT(0);
@@ -120,17 +101,10 @@ pub fn start_clipboard_monitoring(app: AppHandle) {
 
             SetWindowLongPtrW(hwnd, GWLP_USERDATA, state_ptr as isize);
 
-            // Register as clipboard viewer
-            match SetClipboardViewer(hwnd) {
-                Ok(next) => {
-                    let state_ref = &mut *(state_ptr as *mut MonitorState);
-                    state_ref.next_viewer = next;
-                }
-                Err(_) => {
-                    let _ = Box::from_raw(state_ptr);
-                    let _ = DestroyWindow(hwnd);
-                    return;
-                }
+            if let Err(_) = AddClipboardFormatListener(hwnd) {
+                let _ = Box::from_raw(state_ptr);
+                let _ = DestroyWindow(hwnd);
+                return;
             }
 
             let mut msg = MSG::default();
@@ -142,6 +116,8 @@ pub fn start_clipboard_monitoring(app: AppHandle) {
                 let _ = DispatchMessageW(&mut msg);
             }
 
+            use windows::Win32::System::DataExchange::RemoveClipboardFormatListener;
+            let _ = RemoveClipboardFormatListener(hwnd);
             let _ = DestroyWindow(hwnd);
             let _ = Box::from_raw(state_ptr);
         }
@@ -205,16 +181,17 @@ fn handle_clipboard_change(
         }
     }
 
-    if let Some(entry) = captured {
+    if let Some(entry) = &captured {
         if let Some(state) = app.try_state::<Mutex<HistoryState>>() {
             if let Ok(mut state) = state.lock() {
-                state.entries.insert(0, entry);
+                state.entries.insert(0, entry.clone());
                 if state.entries.len() > MAX_ENTRIES {
                     state.entries.truncate(MAX_ENTRIES);
                 }
                 state.dirty = true;
             }
         }
+        let _ = app.emit("history-updated", ());
     }
 }
 
@@ -222,8 +199,12 @@ pub fn flush_history(app: &AppHandle) {
     if let Some(state) = app.try_state::<Mutex<HistoryState>>() {
         if let Ok(mut state) = state.lock() {
             if state.dirty {
+                println!("[parrot] HISTORY: flushing {} entries to disk", state.entries.len());
                 let _ = save_history(app, &state.entries);
                 state.dirty = false;
+                println!("[parrot] HISTORY: flush complete");
+            } else {
+                println!("[parrot] HISTORY: flush skipped (not dirty, {} entries in memory)", state.entries.len());
             }
         }
     }

@@ -114,8 +114,16 @@ pub fn get_foreground_hwnd() -> Result<isize, String> {
 
 #[tauri::command]
 pub fn get_history(app: AppHandle) -> Result<Vec<HistoryEntry>, String> {
-    clipboard_monitor::flush_history(&app);
-    storage::load_history(&app)
+    let mut entries = Vec::new();
+    if let Some(state) = app.try_state::<Mutex<HistoryState>>() {
+        if let Ok(state) = state.lock() {
+            entries = state.entries.clone();
+        }
+    }
+    if entries.is_empty() {
+        entries = storage::load_history(&app)?;
+    }
+    Ok(entries)
 }
 
 #[tauri::command]
