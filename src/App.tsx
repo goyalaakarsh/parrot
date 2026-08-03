@@ -241,12 +241,12 @@ export default function App() {
     },
     onCtrlComma: () => setView('settings'),
     onCtrlK: () => setView('command-palette'),
-    onCtrlShiftT: () => {
+    onCtrlT: () => {
       setView('list');
       setActiveTab('texts');
       setSearchFocused(true);
     },
-    onCtrlShiftH: () => {
+    onCtrlH: () => {
       setView('list');
       setActiveTab('history');
       setSearchFocused(true);
@@ -274,7 +274,7 @@ export default function App() {
       id: 'open-prompts',
       label: 'Open Texts',
       category: 'Navigation',
-      shortcut: 'Ctrl+Shift+T',
+      shortcut: 'Ctrl+T',
       action: () => { setView('list'); setActiveTab('texts'); setSearchFocused(true); },
       enabled: true,
     },
@@ -282,7 +282,7 @@ export default function App() {
       id: 'open-history',
       label: 'Open History',
       category: 'Navigation',
-      shortcut: 'Ctrl+Shift+H',
+      shortcut: 'Ctrl+H',
       action: () => { setView('list'); setActiveTab('history'); setSearchFocused(true); },
       enabled: true,
     },

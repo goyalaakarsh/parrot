@@ -77,32 +77,40 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
       </div>
 
       {/* Tabs */}
-      <div role="tablist" className="flex items-center gap-1 border-b border-border pb-1.5">
+      <div role="tablist" className="flex items-center gap-1 p-1 bg-surface rounded-lg">
         <button
           role="tab"
           aria-selected={activeTab === 'texts'}
           onClick={() => onTabChange('texts')}
-          className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold px-2 py-1 rounded transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 rounded-md transition-all duration-150 ${
             activeTab === 'texts'
-              ? 'text-accent bg-accent-dim/15'
-              : 'text-muted hover:text-primary'
+              ? 'bg-accent text-background shadow-sm'
+              : 'text-muted hover:text-primary hover:bg-surface-hover'
           }`}
         >
           My Texts
-          <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium leading-none">Ctrl+Shift+T</kbd>
+          <kbd className={`text-[9px] px-1 py-0.5 rounded font-sans font-medium leading-none ${
+            activeTab === 'texts'
+              ? 'bg-black/15 text-background/80 border-transparent'
+              : 'bg-surface-hover border border-border text-muted'
+          }`}>Ctrl+T</kbd>
         </button>
         <button
           role="tab"
           aria-selected={activeTab === 'history'}
           onClick={() => onTabChange('history')}
-          className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold px-2 py-1 rounded transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 rounded-md transition-all duration-150 ${
             activeTab === 'history'
-              ? 'text-accent bg-accent-dim/15'
-              : 'text-muted hover:text-primary'
+              ? 'bg-accent text-background shadow-sm'
+              : 'text-muted hover:text-primary hover:bg-surface-hover'
           }`}
         >
           History
-          <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium leading-none">Ctrl+Shift+H</kbd>
+          <kbd className={`text-[9px] px-1 py-0.5 rounded font-sans font-medium leading-none ${
+            activeTab === 'history'
+              ? 'bg-black/15 text-background/80 border-transparent'
+              : 'bg-surface-hover border border-border text-muted'
+          }`}>Ctrl+H</kbd>
         </button>
       </div>
 
