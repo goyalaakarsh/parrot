@@ -68,10 +68,12 @@ pub fn start_clipboard_monitoring(app: AppHandle) {
                 unsafe { DefWindowProcW(hwnd, msg, wparam, lparam) }
             }
 
-            let mut wc = WNDCLASSW::default();
-            wc.lpfnWndProc = Some(wnd_proc);
-            wc.hInstance = instance.into();
-            wc.lpszClassName = class_pcwstr;
+            let wc = WNDCLASSW {
+                lpfnWndProc: Some(wnd_proc),
+                hInstance: instance.into(),
+                lpszClassName: class_pcwstr,
+                ..Default::default()
+            };
 
             if RegisterClassW(&wc as *const WNDCLASSW) == 0 {
                 let _ = Box::from_raw(state_ptr);
@@ -101,7 +103,7 @@ pub fn start_clipboard_monitoring(app: AppHandle) {
 
             SetWindowLongPtrW(hwnd, GWLP_USERDATA, state_ptr as isize);
 
-            if let Err(_) = AddClipboardFormatListener(hwnd) {
+            if AddClipboardFormatListener(hwnd).is_err() {
                 let _ = Box::from_raw(state_ptr);
                 let _ = DestroyWindow(hwnd);
                 return;
@@ -113,7 +115,7 @@ pub fn start_clipboard_monitoring(app: AppHandle) {
                 if result == BOOL(0) {
                     break;
                 }
-                let _ = DispatchMessageW(&mut msg);
+                let _ = DispatchMessageW(&msg);
             }
 
             use windows::Win32::System::DataExchange::RemoveClipboardFormatListener;
@@ -135,7 +137,7 @@ fn handle_clipboard_change(
     if let Ok(img) = clipboard.get_image() {
         let hash = hash_bytes(&img.bytes);
         let is_new = Some(&hash) != last_image_hash.as_ref();
-        if is_new && img.bytes.len() > 0 {
+        if is_new && !img.bytes.is_empty() {
             *last_image_hash = Some(hash);
             *last_text = None;
             let source_app = get_foreground_window_title();

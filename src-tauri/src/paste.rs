@@ -82,8 +82,9 @@ pub fn position_window_at_caret_or_cursor(window: &tauri::WebviewWindow) {
     
     unsafe {
         // Passing 0 queries the active/foreground thread
-        if GetGUIThreadInfo(0, &mut gti).is_ok() {
-            if !gti.hwndCaret.is_invalid() {
+        if GetGUIThreadInfo(0, &mut gti).is_ok()
+            && !gti.hwndCaret.is_invalid()
+        {
                 let mut pt = windows::Win32::Foundation::POINT {
                     x: gti.rcCaret.left,
                     y: gti.rcCaret.bottom, // align window just below the caret line
@@ -95,7 +96,6 @@ pub fn position_window_at_caret_or_cursor(window: &tauri::WebviewWindow) {
                         got_caret = true;
                     }
                 }
-            }
         }
     }
 
