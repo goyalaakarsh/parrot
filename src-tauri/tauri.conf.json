@@ -65,6 +65,10 @@
       "nsis": {
         "installerIcon": "./icons/icon.ico",
         "installMode": "currentUser"
+      },
+      "wix": {
+        "bannerPath": "./icons/banner.bmp",
+        "dialogImagePath": "./icons/dialog.bmp"
       }
     }
   },
