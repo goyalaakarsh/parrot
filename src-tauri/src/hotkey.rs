@@ -8,6 +8,7 @@ use crate::storage::{Prompt, save_prompts};
 pub fn register_hotkeys(app: &AppHandle, toggle_shortcut: &str, quick_capture_shortcut: &str) -> Result<(), String> {
     let shortcut_manager = app.global_shortcut();
 
+    // Best-effort unregister all existing shortcuts first
     let _ = shortcut_manager.unregister_all();
 
     // Register toggle shortcut
@@ -15,16 +16,34 @@ pub fn register_hotkeys(app: &AppHandle, toggle_shortcut: &str, quick_capture_sh
     let toggle_parsed = Shortcut::from_str(&toggle_normalized)
         .map_err(|e| format!("Failed to parse shortcut '{}': {:?}", toggle_shortcut, e))?;
 
-    shortcut_manager.register(toggle_parsed)
-        .map_err(|e| format!("Failed to register shortcut '{}': {:?}", toggle_normalized, e))?;
+    match shortcut_manager.register(toggle_parsed) {
+        Ok(_) => {}
+        Err(e) => {
+            let msg = e.to_string();
+            if msg.contains("already registered") {
+                // Already registered — treat as success
+            } else {
+                return Err(format!("Failed to register shortcut '{}': {:?}", toggle_normalized, e));
+            }
+        }
+    }
 
     // Register quick capture shortcut
     let qc_normalized = normalize_shortcut(quick_capture_shortcut);
     let qc_parsed = Shortcut::from_str(&qc_normalized)
         .map_err(|e| format!("Failed to parse shortcut '{}': {:?}", quick_capture_shortcut, e))?;
 
-    shortcut_manager.register(qc_parsed)
-        .map_err(|e| format!("Failed to register shortcut '{}': {:?}", qc_normalized, e))?;
+    match shortcut_manager.register(qc_parsed) {
+        Ok(_) => {}
+        Err(e) => {
+            let msg = e.to_string();
+            if msg.contains("already registered") {
+                // Already registered — treat as success
+            } else {
+                return Err(format!("Failed to register shortcut '{}': {:?}", qc_normalized, e));
+            }
+        }
+    }
 
     Ok(())
 }

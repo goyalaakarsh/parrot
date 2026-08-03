@@ -25,7 +25,10 @@ pub fn get_settings(app: AppHandle) -> Result<Settings, String> {
 #[tauri::command]
 pub fn save_settings(app: AppHandle, settings: Settings) -> Result<(), String> {
     storage::save_settings(&app, &settings)?;
-    crate::hotkey::register_hotkeys(&app, &settings.global_shortcut, &settings.quick_capture_shortcut)?;
+    // Hotkey registration is non-fatal — settings are already saved
+    if let Err(e) = crate::hotkey::register_hotkeys(&app, &settings.global_shortcut, &settings.quick_capture_shortcut) {
+        eprintln!("Warning: hotkey registration failed: {}", e);
+    }
     Ok(())
 }
 
