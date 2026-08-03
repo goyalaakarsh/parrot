@@ -30,65 +30,17 @@ jobs:
       - name: Install frontend deps
         run: npm ci
 
-      - name: Create code signing certificate
-        run: |
-          $cert = New-SelfSignedCertificate `
-            -Type CodeSigningCert `
-            -Subject "CN=Parrot, O=Parrot, C=US" `
-            -KeyUsage DigitalSignature `
-            -KeyAlgorithm RSA `
-            -KeyLength 2048 `
-            -CertStoreLocation Cert:\CurrentUser\My `
-            -NotAfter (Get-Date).AddYears(3)
-          
-          $password = ConvertTo-SecureString -String "${{ secrets.CERT_PASSWORD || 'ParrotDev2024!' }}" -AsPlainText -Force
-          $path = "Cert:\CurrentUser\My\$($cert.Thumbprint)"
-          
-          Export-PfxCertificate -Cert $path -FilePath "$env:RUNNER_TEMP\code-signing.pfx" -Password $password
-          echo "CERT_THUMBPRINT=$($cert.Thumbprint)" >> $env:GITHUB_ENV
-          echo "CERT_PATH=$env:RUNNER_TEMP\code-signing.pfx" >> $env:GITHUB_ENV
-
-      - name: Build Tauri app
+      - name: Build Tauri app (MSI only)
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.CERT_PASSWORD || 'ParrotDev2024!' }}
-
-      - name: Sign NSIS installer
-        run: |
-          $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2(
-            "${{ env.CERT_PATH }}",
-            "${{ secrets.CERT_PASSWORD || 'ParrotDev2024!' }}",
-            [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable
-          )
-          
-          $files = Get-ChildItem -Path "src-tauri/target/release/bundle/nsis" -Filter "*.exe" -ErrorAction SilentlyContinue
-          foreach ($file in $files) {
-            Write-Host "Signing $($file.FullName)..."
-            Set-AuthenticodeSignature -FilePath $file.FullName -Certificate $cert -TimestampServer "http://timestamp.digicert.com" -HashAlgorithm SHA256
-          }
-
-      - name: Sign MSI installer
-        run: |
-          $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2(
-            "${{ env.CERT_PATH }}",
-            "${{ secrets.CERT_PASSWORD || 'ParrotDev2024!' }}",
-            [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable
-          )
-          
-          $files = Get-ChildItem -Path "src-tauri/target/release/bundle/msi" -Filter "*.msi" -ErrorAction SilentlyContinue
-          foreach ($file in $files) {
-            Write-Host "Signing $($file.FullName)..."
-            Set-AuthenticodeSignature -FilePath $file.FullName -Certificate $cert -TimestampServer "http://timestamp.digicert.com" -HashAlgorithm SHA256
-          }
+        with:
+          args: --bundles msi
 
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/bundle/msi/*.msi
+          files: src-tauri/target/release/bundle/msi/*.msi
           generate_release_notes: true
           draft: false
           prerelease: false

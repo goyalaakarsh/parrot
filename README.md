@@ -75,16 +75,21 @@
 
 ## Installation
 
-Download the latest installer from the [Releases page](https://github.com/goyalaakarsh/parrot/releases/latest) (or click the badge above), then run the MSI and launch Parrot from your desktop or start menu.
+Download the latest `.msi` installer from the [Releases page](https://github.com/goyalaakarsh/parrot/releases/latest) (or click the badge above), then run it and launch Parrot from your desktop or start menu.
 
-### Windows SmartScreen / Virus Detection
+### Windows SmartScreen Warning
 
-Parrot releases are code-signed to ensure authenticity. If you see a SmartScreen warning:
+When you first run the installer, Windows will show a SmartScreen warning ("Windows protected your PC"). This is normal for new, unsigned applications — it does **not** mean the app is harmful.
 
-1. Click **More info** → **Run anyway**
-2. Or right-click the downloaded file → **Properties** → check **Unblock** → **Apply**
+**To install:**
+1. Click **More info**
+2. Click **Run anyway**
 
-If Windows Defender flags the installer, it's a false positive. You can submit it to Microsoft for analysis at [Microsoft Security Intelligence](https://www.microsoft.com/en-us/wdsi/filesubmission).
+This warning only appears the first time. Once you've run it, Windows remembers your choice.
+
+### Why is this unsigned?
+
+Parrot is a free, open-source project. Code signing certificates cost $50–200/year. We're working on getting a free certificate through [SignPath Foundation](https://signpath.org) to eliminate this warning in future releases.
 
 ---
 
