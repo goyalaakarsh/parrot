@@ -1,0 +1,20 @@
+{
+  "version": "1",
+  "signing": {
+    "products": [
+      {
+        "id": "Parrot",
+        "name": "Parrot",
+        "description": "Parrot - Clipboard You Love"
+      }
+    ],
+    "certificate": {
+      "id": "ParrotCertificate",
+      "name": "Parrot Code Signing Certificate",
+      "subjectName": "Parrot",
+      "chainBuildConfiguration": {
+        "buildChain": true
+      }
+    }
+  }
+}

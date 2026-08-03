@@ -58,6 +58,8 @@
 | `Ctrl+E` | Edit selected text |
 | `Ctrl+D` or `Delete` | Delete selected text (Enter to confirm, Escape to cancel) |
 | `Ctrl+,` | Open Settings |
+| `Ctrl+T` | Switch to My Texts tab |
+| `Ctrl+H` | Switch to History tab |
 | `Ctrl+Enter` | Save text in Add/Edit panel |
 | `Arrow Left` / `Arrow Right` | Navigate Cancel/Delete buttons in confirmation |
 | `Tab` | Move focus between interactive elements |
@@ -74,6 +76,15 @@
 ## Installation
 
 Download the latest installer from the [Releases page](https://github.com/goyalaakarsh/parrot/releases/latest) (or click the badge above), then run the MSI and launch Parrot from your desktop or start menu.
+
+### Windows SmartScreen / Virus Detection
+
+Parrot releases are code-signed to ensure authenticity. If you see a SmartScreen warning:
+
+1. Click **More info** → **Run anyway**
+2. Or right-click the downloaded file → **Properties** → check **Unblock** → **Apply**
+
+If Windows Defender flags the installer, it's a false positive. You can submit it to Microsoft for analysis at [Microsoft Security Intelligence](https://www.microsoft.com/en-us/wdsi/filesubmission).
 
 ---
 
@@ -124,6 +135,21 @@ Parrot is built with accessibility as a core principle:
 ## Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+---
+
+## Release Signing (Maintainers)
+
+Releases are signed using [SignPath.io](https://signpath.io) (free for open source). To set up:
+
+1. Create a free account at [SignPath.io](https://signpath.io)
+2. Link your GitHub repository
+3. Add these GitHub secrets:
+   - `SIGNPATH_ORG_ID` — Your SignPath organization ID
+   - `SIGNPATH_API_TOKEN` — Your SignPath API token
+4. Create an artifact configuration in SignPath for the `.exe` and `.msi` files
+
+The release workflow automatically signs binaries when these secrets are configured. If not configured, releases are built unsigned (with a fallback).
 
 ---
 

@@ -8,30 +8,100 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
+
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
+
       - name: Install frontend deps
         run: npm ci
-      - name: Build and release
+
+      - name: Build Tauri app
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Parrot ${{ github.ref_name }}"
-          releaseBody: "See CHANGELOG for details."
-          releaseDraft: false
+          releaseId: ${{ steps.create_release.outputs.release_id }}
+
+      - name: Upload unsigned artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-binaries
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/msi/*.msi
+          retention-days: 5
+
+  sign:
+    needs: build
+    runs-on: windows-latest
+    if: ${{ secrets.SIGNPATH_ORG_ID != '' }}
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: unsigned-binaries
+          path: ./artifacts
+
+      - name: Sign with SignPath
+        uses: signpath/sign-path-action@v1
+        with:
+          organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          project-slug: Parrot
+          signing-policy-slug: release-signing
+          artifact-configuration-id: ${{ vars.SIGNPATH_ARTIFACT_CONFIG_ID }}
+          parameters: |
+            FileHash=SHA256
+
+      - name: Upload signed artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-binaries
+          path: |
+            ./artifacts/*.exe
+            ./artifacts/*.msi
+          retention-days: 5
+
+  release:
+    needs: [build, sign]
+    if: always() && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download signed binaries (if available)
+        uses: actions/download-artifact@v4
+        if: needs.sign.result == 'success'
+        with:
+          name: signed-binaries
+          path: ./release-binaries
+
+      - name: Download unsigned binaries (fallback)
+        uses: actions/download-artifact@v4
+        if: needs.sign.result != 'success'
+        with:
+          name: unsigned-binaries
+          path: ./release-binaries
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./release-binaries/*
+          generate_release_notes: true
+          draft: false
           prerelease: false
