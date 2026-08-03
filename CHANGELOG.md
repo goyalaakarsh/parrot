@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.2.0] - 2026
+
+### Added
+
+- Light/dark/system theme with CSS variable-based theming
+- Theme selector in Settings
+- Universal search across both My Texts and History tabs
+- Simplified tab shortcuts: Ctrl+T (My Texts), Ctrl+H (History)
+- Keyboard shortcut badges on tab buttons
+
+### Changed
+
+- Auto-save settings on every change — removed Save button
+- Tabs redesigned as segmented control with clear active state
+- Page headers redesigned: heading left-aligned, back button right
+- Softened dark theme colors for reduced eye strain
+
+### Fixed
+
+- Hotkey registration errors no longer fail settings save
+- Clippy warnings fixed across Rust codebase
+
 ## [0.1.0] - 2026
 
 ### Added
