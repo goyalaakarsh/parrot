@@ -25,4 +25,5 @@ export interface Settings {
   launchAtStartup: boolean;
   textHistoryRetentionDays: number;
   imageHistoryRetentionDays: number;
+  theme: 'dark' | 'light' | 'system';
 }

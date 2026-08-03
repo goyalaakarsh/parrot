@@ -56,10 +56,13 @@ pub struct Settings {
     pub text_history_retention_days: u32,
     #[serde(default = "default_image_retention")]
     pub image_history_retention_days: u32,
+    #[serde(default = "default_theme")]
+    pub theme: String,
 }
 
 fn default_text_retention() -> u32 { 15 }
 fn default_image_retention() -> u32 { 5 }
+fn default_theme() -> String { "dark".to_string() }
 
 impl Default for Settings {
     fn default() -> Self {
@@ -69,6 +72,7 @@ impl Default for Settings {
             launch_at_startup: false,
             text_history_retention_days: 15,
             image_history_retention_days: 5,
+            theme: "dark".to_string(),
         }
     }
 }
@@ -123,6 +127,7 @@ pub fn load_settings(app: &tauri::AppHandle) -> Result<Settings, String> {
             launch_at_startup: true,
             text_history_retention_days: 15,
             image_history_retention_days: 5,
+            theme: "dark".to_string(),
         };
         save_settings(app, &default_settings)?;
         
@@ -208,7 +213,7 @@ pub fn cleanup_orphaned_images(app: &tauri::AppHandle, keep_entries: &[HistoryEn
         if let Ok(entries) = fs::read_dir(&images_dir) {
             for entry in entries.flatten() {
                 let path = entry.path();
-                if let Some(relative) = path.strip_prefix(&app_data_dir).ok() {
+                if let Ok(relative) = path.strip_prefix(&app_data_dir) {
                     let rel_str = relative.to_string_lossy().replace('\\', "/");
                     if !referenced.contains(rel_str.as_str()) {
                         let _ = fs::remove_file(&path);

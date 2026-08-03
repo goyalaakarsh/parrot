@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Keyboard, Power, Zap, Clock } from 'lucide-react';
+import { ArrowLeft, Keyboard, Power, Zap, Clock, Palette } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { Settings } from '../types';
@@ -7,16 +7,18 @@ import { Settings } from '../types';
 interface SettingsPanelProps {
   onBack: () => void;
   showToast: (msg: string, type?: 'success' | 'error') => void;
+  onThemeChange: (theme: 'dark' | 'light' | 'system') => void;
 }
 
 const RETENTION_OPTIONS = [3, 5, 10, 15, 20, 25, 30];
 
-export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
+export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPanelProps) {
   const [shortcut, setShortcut] = useState('CommandOrControl+Shift+Space');
   const [quickCaptureShortcut, setQuickCaptureShortcut] = useState('CommandOrControl+Shift+C');
   const [autostart, setAutostart] = useState(true);
   const [textRetention, setTextRetention] = useState(15);
   const [imageRetention, setImageRetention] = useState(5);
+  const [theme, setTheme] = useState<'dark' | 'light' | 'system'>('dark');
   const [isCapturing, setIsCapturing] = useState<'main' | 'quick' | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -30,6 +32,7 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
         setQuickCaptureShortcut(savedSettings.quickCaptureShortcut || 'CommandOrControl+Shift+C');
         setTextRetention(savedSettings.textHistoryRetentionDays ?? 15);
         setImageRetention(savedSettings.imageHistoryRetentionDays ?? 5);
+        setTheme(savedSettings.theme || 'dark');
 
         const autostartEnabled = await isEnabled();
         setAutostart(autostartEnabled);
@@ -112,6 +115,7 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
           launchAtStartup: autostart,
           textHistoryRetentionDays: textRetention,
           imageHistoryRetentionDays: imageRetention,
+          theme,
         },
       });
 
@@ -180,6 +184,31 @@ export function SettingsPanel({ onBack, showToast }: SettingsPanelProps) {
               }`}
             />
           </button>
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted">
+            <Palette size={12} aria-hidden="true" />
+            <span>APPEARANCE</span>
+          </div>
+          <div className="flex items-center gap-1 p-0.5 rounded-md bg-surface border border-border">
+            {(['dark', 'light', 'system'] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => {
+                  setTheme(t);
+                  onThemeChange(t);
+                }}
+                className={`flex-1 h-7 text-[11px] font-semibold rounded transition-colors ${
+                  theme === t
+                    ? 'bg-accent text-background'
+                    : 'text-muted hover:text-primary'
+                }`}
+              >
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="space-y-1.5">

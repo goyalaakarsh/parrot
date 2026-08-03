@@ -19,7 +19,7 @@ import { usePrompts } from './hooks/usePrompts';
 import { useSearch } from './hooks/useSearch';
 import { useHistory } from './hooks/useHistory';
 import { useKeyboard } from './hooks/useKeyboard';
-import { Prompt, HistoryEntry } from './types';
+import { Prompt, HistoryEntry, Settings } from './types';
 
 export default function App() {
   const [view, setView] = useState<'list' | 'add' | 'edit' | 'settings' | 'about' | 'command-palette' | 'tray-menu'>('list');
@@ -29,6 +29,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'texts' | 'history'>('texts');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [historyFilter, setHistoryFilter] = useState<'all' | 'text' | 'images'>('all');
+  const [theme, setTheme] = useState<'dark' | 'light' | 'system'>('dark');
 
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -42,6 +43,27 @@ export default function App() {
   const hideToast = useCallback(() => {
     setToastMessage(null);
   }, []);
+
+  // Load theme from settings on mount
+  useEffect(() => {
+    invoke<Settings>('get_settings').then((s) => {
+      setTheme(s.theme || 'dark');
+    }).catch(() => {});
+  }, []);
+
+  // Apply theme class to <html>
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: light)');
+    const apply = () => {
+      const resolved = theme === 'system' ? (mq.matches ? 'light' : 'dark') : theme;
+      document.documentElement.classList.toggle('light', resolved === 'light');
+    };
+    apply();
+    if (theme === 'system') {
+      mq.addEventListener('change', apply);
+      return () => mq.removeEventListener('change', apply);
+    }
+  }, [theme]);
 
   // CRUD hooks
   const { prompts, loading, addPrompt, updatePrompt, deletePrompt, markPromptUsed, togglePin, refresh: refreshPrompts } = usePrompts(showToast);
@@ -508,6 +530,7 @@ export default function App() {
         <SettingsPanel
           onBack={() => setView('list')}
           showToast={showToast}
+          onThemeChange={setTheme}
         />
       )}
 
