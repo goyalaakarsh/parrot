@@ -241,7 +241,7 @@ export default function App() {
     },
     onCtrlComma: () => setView('settings'),
     onCtrlK: () => setView('command-palette'),
-    onCtrlShiftP: () => {
+    onCtrlShiftT: () => {
       setView('list');
       setActiveTab('texts');
       setSearchFocused(true);
@@ -274,7 +274,7 @@ export default function App() {
       id: 'open-prompts',
       label: 'Open Texts',
       category: 'Navigation',
-      shortcut: 'Ctrl+Shift+P',
+      shortcut: 'Ctrl+Shift+T',
       action: () => { setView('list'); setActiveTab('texts'); setSearchFocused(true); },
       enabled: true,
     },

@@ -82,20 +82,20 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
           role="tab"
           aria-selected={activeTab === 'texts'}
           onClick={() => onTabChange('texts')}
-          className={`flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold px-2 py-1 rounded transition-colors ${
             activeTab === 'texts'
               ? 'text-accent bg-accent-dim/15'
               : 'text-muted hover:text-primary'
           }`}
         >
           My Texts
-          <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium leading-none">Ctrl+Shift+P</kbd>
+          <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium leading-none">Ctrl+Shift+T</kbd>
         </button>
         <button
           role="tab"
           aria-selected={activeTab === 'history'}
           onClick={() => onTabChange('history')}
-          className={`flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold px-2 py-1 rounded transition-colors ${
             activeTab === 'history'
               ? 'text-accent bg-accent-dim/15'
               : 'text-muted hover:text-primary'

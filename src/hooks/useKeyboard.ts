@@ -8,14 +8,14 @@ interface UseKeyboardProps {
   onCtrlN?: () => void;
   onCtrlComma?: () => void;
   onCtrlK?: () => void;
-  onCtrlShiftP?: () => void;
+  onCtrlShiftT?: () => void;
   onCtrlShiftH?: () => void;
   onCtrlShiftA?: () => void;
   onCtrlQ?: () => void;
   isActive: boolean;
 }
 
-export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlShiftP, onCtrlShiftH, onCtrlShiftA, onCtrlQ, isActive }: UseKeyboardProps) {
+export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlShiftT, onCtrlShiftH, onCtrlShiftA, onCtrlQ, isActive }: UseKeyboardProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   // Reset selected index if items count changes
@@ -32,10 +32,10 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
         return;
       }
 
-      // Allow Ctrl+Shift+P from anywhere
-      if (e.key === 'P' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+      // Allow Ctrl+Shift+T from anywhere
+      if (e.key === 'T' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
         e.preventDefault();
-        onCtrlShiftP?.();
+        onCtrlShiftT?.();
         return;
       }
 
@@ -99,7 +99,7 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlShiftP, onCtrlShiftH, onCtrlShiftA, onCtrlQ, selectedIndex, isActive]);
+  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlShiftT, onCtrlShiftH, onCtrlShiftA, onCtrlQ, selectedIndex, isActive]);
 
   return { selectedIndex, setSelectedIndex };
 }
