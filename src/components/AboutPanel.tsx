@@ -30,7 +30,7 @@ export function AboutPanel({ onBack }: AboutPanelProps) {
 
         <div>
           <h3 className="text-base font-bold text-primary">Parrot</h3>
-          <p className="text-[11px] text-muted mt-0.5">Version 0.1.0</p>
+          <p className="text-[11px] text-muted mt-0.5">Version 0.2.0</p>
         </div>
 
         <div className="w-full max-w-[240px] px-4 py-3 rounded-lg bg-surface border border-border">
