@@ -135,7 +135,8 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-1 select-text">
       <div className="flex-1 overflow-y-auto pr-0.5 space-y-5">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-primary">Settings</h2>
           <button
             onClick={onBack}
             aria-label="Back to texts"
@@ -144,7 +145,6 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
             <ArrowLeft size={16} aria-hidden="true" />
             <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none">Esc</kbd>
           </button>
-          <h2 className="text-base font-semibold text-primary">Settings</h2>
         </div>
         <div className="flex items-center justify-between p-3 rounded-md border border-border bg-surface">
           <div className="flex items-center gap-2">

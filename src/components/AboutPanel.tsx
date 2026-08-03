@@ -7,7 +7,8 @@ interface AboutPanelProps {
 export function AboutPanel({ onBack }: AboutPanelProps) {
   return (
     <div className="flex-1 flex flex-col p-1 select-text">
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base font-semibold text-primary">About</h2>
         <button
           onClick={onBack}
           aria-label="Back to texts"
@@ -16,7 +17,6 @@ export function AboutPanel({ onBack }: AboutPanelProps) {
           <ArrowLeft size={16} aria-hidden="true" />
           <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none">Esc</kbd>
         </button>
-        <h2 className="text-base font-semibold text-primary">About</h2>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">

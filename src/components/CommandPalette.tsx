@@ -102,7 +102,8 @@ export function CommandPalette({ onClose, commands }: CommandPaletteProps) {
 
   return (
     <div className="flex-1 flex flex-col p-1 select-text min-h-0">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-base font-semibold text-primary">Commands</h2>
         <button
           onClick={onClose}
           aria-label="Close"
@@ -111,7 +112,6 @@ export function CommandPalette({ onClose, commands }: CommandPaletteProps) {
           <ArrowLeft size={16} aria-hidden="true" />
           <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none">Esc</kbd>
         </button>
-        <h2 className="text-base font-semibold text-primary">Commands</h2>
       </div>
 
       <div className="relative border border-border rounded-lg bg-surface mb-2">
