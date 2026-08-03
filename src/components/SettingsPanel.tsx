@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Keyboard, Power, Zap, Clock, Palette } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
@@ -21,7 +21,24 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
   const [theme, setTheme] = useState<'dark' | 'light' | 'system'>('dark');
   const [isCapturing, setIsCapturing] = useState<'main' | 'quick' | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+
+  const persist = useCallback(async (overrides: Partial<Settings>) => {
+    try {
+      await invoke('save_settings', {
+        settings: {
+          globalShortcut: shortcut,
+          quickCaptureShortcut,
+          launchAtStartup: autostart,
+          textHistoryRetentionDays: textRetention,
+          imageHistoryRetentionDays: imageRetention,
+          theme,
+          ...overrides,
+        },
+      });
+    } catch (err: any) {
+      console.error('Failed to save settings:', err);
+    }
+  }, [shortcut, quickCaptureShortcut, autostart, textRetention, imageRetention, theme]);
 
   useEffect(() => {
     async function loadSettings() {
@@ -94,8 +111,10 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
         const combo = keys.join('+');
         if (isCapturing === 'main') {
           setShortcut(combo);
+          persist({ globalShortcut: combo });
         } else {
           setQuickCaptureShortcut(combo);
+          persist({ quickCaptureShortcut: combo });
         }
         setIsCapturing(null);
       }
@@ -103,41 +122,7 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
 
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [isCapturing]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await invoke('save_settings', {
-        settings: {
-          globalShortcut: shortcut,
-          quickCaptureShortcut,
-          launchAtStartup: autostart,
-          textHistoryRetentionDays: textRetention,
-          imageHistoryRetentionDays: imageRetention,
-          theme,
-        },
-      });
-
-      try {
-        if (autostart) {
-          await enable();
-        } else {
-          await disable();
-        }
-      } catch (autostartErr: any) {
-        console.warn('Autostart configuration failed:', autostartErr);
-      }
-
-      showToast('Settings saved successfully', 'success');
-      onBack();
-    } catch (err: any) {
-      console.error('Failed to save settings:', err);
-      showToast(err.toString() || 'Failed to save settings', 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
+  }, [isCapturing, persist]);
 
   if (loading) {
     return (
@@ -161,7 +146,7 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
           </button>
           <h2 className="text-sm font-semibold text-primary">Settings</h2>
         </div>
-                <div className="flex items-center justify-between p-3 rounded-md border border-border bg-surface">
+        <div className="flex items-center justify-between p-3 rounded-md border border-border bg-surface">
           <div className="flex items-center gap-2">
             <Power size={14} className="text-muted" aria-hidden="true" />
             <div className="flex flex-col">
@@ -170,7 +155,14 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
             </div>
           </div>
           <button
-            onClick={() => setAutostart(!autostart)}
+            onClick={async () => {
+              const next = !autostart;
+              setAutostart(next);
+              persist({ launchAtStartup: next });
+              try {
+                if (next) { await enable(); } else { await disable(); }
+              } catch { /* autostart config is best-effort */ }
+            }}
             role="switch"
             aria-checked={autostart}
             aria-label="Toggle launch at startup"
@@ -198,6 +190,7 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
                 onClick={() => {
                   setTheme(t);
                   onThemeChange(t);
+                  persist({ theme: t });
                 }}
                 className={`flex-1 h-7 text-[11px] font-semibold rounded transition-colors ${
                   theme === t
@@ -223,7 +216,6 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
               value={isCapturing === 'main' ? 'Press keys…' : shortcut}
               onClick={() => setIsCapturing('main')}
               aria-label="Toggle shortcut key combination"
-              aria-describedby="shortcut-hint"
               className={`w-full h-9 px-3 text-[13px] rounded-md border bg-surface cursor-pointer text-left transition-[border-color,color,box-shadow] ${
                 isCapturing === 'main'
                   ? 'border-accent text-accent animate-pulse ring-1 ring-accent'
@@ -231,7 +223,7 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
               }`}
             />
             {!isCapturing && (
-              <span id="shortcut-hint" className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">
                 Click to edit
               </span>
             )}
@@ -251,7 +243,6 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
               value={isCapturing === 'quick' ? 'Press keys…' : quickCaptureShortcut}
               onClick={() => setIsCapturing('quick')}
               aria-label="Quick capture shortcut key combination"
-              aria-describedby="quick-shortcut-hint"
               className={`w-full h-9 px-3 text-[13px] rounded-md border bg-surface cursor-pointer text-left transition-[border-color,color,box-shadow] ${
                 isCapturing === 'quick'
                   ? 'border-accent text-accent animate-pulse ring-1 ring-accent'
@@ -259,7 +250,7 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
               }`}
             />
             {!isCapturing && (
-              <span id="quick-shortcut-hint" className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">
                 Click to edit
               </span>
             )}
@@ -277,7 +268,11 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
               <span className="text-xs text-primary">Text history</span>
               <select
                 value={textRetention}
-                onChange={(e) => setTextRetention(Number(e.target.value))}
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  setTextRetention(v);
+                  persist({ textHistoryRetentionDays: v });
+                }}
                 className="h-7 px-2 text-xs rounded-md bg-surface-hover border border-border text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent cursor-pointer"
                 style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-primary)' }}
               >
@@ -294,7 +289,11 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
               </div>
               <select
                 value={imageRetention}
-                onChange={(e) => setImageRetention(Number(e.target.value))}
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  setImageRetention(v);
+                  persist({ imageHistoryRetentionDays: v });
+                }}
                 className="h-7 px-2 text-xs rounded-md bg-surface-hover border border-border text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent cursor-pointer"
                 style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-primary)' }}
               >
@@ -311,17 +310,7 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
             )}
           </div>
         </div>
-
-
       </div>
-
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="w-full h-9 rounded-md bg-accent text-background text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-[opacity,transform] mt-4"
-      >
-        {saving ? 'Saving…' : 'Save Settings'}
-      </button>
     </div>
   );
 }
