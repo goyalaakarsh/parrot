@@ -14,6 +14,7 @@ import { CommandPalette } from './components/CommandPalette';
 import { Toast } from './components/Toast';
 import { Onboarding } from './components/Onboarding';
 import { HistoryPanel } from './components/HistoryPanel';
+import { UnifiedSearchResults } from './components/UnifiedSearchResults';
 
 import { usePrompts } from './hooks/usePrompts';
 import { useSearch } from './hooks/useSearch';
@@ -82,6 +83,9 @@ export default function App() {
       return false;
     });
   }, [historyEntries, searchQuery]);
+
+  // Whether we're in unified search mode (showing results from both tabs)
+  const isSearching = searchQuery.trim().length > 0;
 
   const displayHistory = useMemo(() => {
     if (historyFilter === 'text') return filteredHistory.filter(e => !e.imagePath);
@@ -177,20 +181,39 @@ export default function App() {
 
   // Keyboard navigation handlers
   const handleKeyboardEnter = useCallback((index: number) => {
-    if (activeTab === 'texts' && filteredPrompts[index]) {
+    if (isSearching) {
+      // Unified search mode: index 0..filteredPrompts.length-1 = texts, then history
+      if (index < filteredPrompts.length) {
+        handlePastePrompt(filteredPrompts[index]);
+      } else {
+        const historyIdx = index - filteredPrompts.length;
+        if (displayHistory[historyIdx]) {
+          handlePasteHistory(displayHistory[historyIdx]);
+        }
+      }
+    } else if (activeTab === 'texts' && filteredPrompts[index]) {
       handlePastePrompt(filteredPrompts[index]);
     } else if (activeTab === 'history' && displayHistory[index]) {
       handlePasteHistory(displayHistory[index]);
     }
-  }, [activeTab, filteredPrompts, displayHistory, handlePastePrompt, handlePasteHistory]);
+  }, [isSearching, activeTab, filteredPrompts, displayHistory, handlePastePrompt, handlePasteHistory]);
 
   const handleKeyboardShiftEnter = useCallback((index: number) => {
-    if (activeTab === 'texts' && filteredPrompts[index]) {
+    if (isSearching) {
+      if (index < filteredPrompts.length) {
+        handleCopyPrompt(filteredPrompts[index]);
+      } else {
+        const historyIdx = index - filteredPrompts.length;
+        if (displayHistory[historyIdx]) {
+          handleCopyHistory(displayHistory[historyIdx]);
+        }
+      }
+    } else if (activeTab === 'texts' && filteredPrompts[index]) {
       handleCopyPrompt(filteredPrompts[index]);
     } else if (activeTab === 'history' && displayHistory[index]) {
       handleCopyHistory(displayHistory[index]);
     }
-  }, [activeTab, filteredPrompts, displayHistory, handleCopyPrompt, handleCopyHistory]);
+  }, [isSearching, activeTab, filteredPrompts, displayHistory, handleCopyPrompt, handleCopyHistory]);
 
   const handleKeyboardEscape = useCallback(async () => {
     if (searchQuery.length > 0) {
@@ -202,9 +225,14 @@ export default function App() {
     await invoke('paste_to_previous_window', { hwnd: 0 });
   }, [searchQuery]);
 
+  // Total items count for keyboard navigation
+  const keyboardItemCount = isSearching
+    ? filteredPrompts.length + displayHistory.length
+    : (activeTab === 'texts' ? filteredPrompts.length : displayHistory.length);
+
   // Setup keyboard hook navigation
   const { selectedIndex, setSelectedIndex } = useKeyboard({
-    itemsCount: activeTab === 'texts' ? filteredPrompts.length : displayHistory.length,
+    itemsCount: keyboardItemCount,
     onEnter: handleKeyboardEnter,
     onShiftEnter: handleKeyboardShiftEnter,
     onEscape: handleKeyboardEscape,
@@ -457,7 +485,35 @@ export default function App() {
             activeTag={activeTag}
             onClearTag={() => setActiveTag(null)}
           />
-          {activeTab === 'texts' ? (
+          {isSearching ? (
+            loading || historyLoading ? (
+              <div role="status" className="flex-1 flex items-center justify-center">
+                <span className="text-xs text-muted">Searching…</span>
+              </div>
+            ) : (
+              <UnifiedSearchResults
+                prompts={filteredPrompts}
+                historyEntries={displayHistory}
+                searchQuery={searchQuery}
+                selectedIndex={selectedIndex}
+                onSelectPrompt={setSelectedIndex}
+                onEditPrompt={(prompt) => {
+                  setEditingPrompt(prompt);
+                  setView('edit');
+                }}
+                onDeletePrompt={deletePrompt}
+                onCopyPrompt={handleCopyPrompt}
+                onPastePrompt={handlePastePrompt}
+                onTogglePin={togglePin}
+                onTagClick={(tag) => {
+                  setActiveTag(tag);
+                  setSearchQuery('');
+                }}
+                onCopyHistory={handleCopyHistory}
+                onPasteHistory={handlePasteHistory}
+              />
+            )
+          ) : activeTab === 'texts' ? (
             loading ? (
               <div role="status" className="flex-1 flex items-center justify-center">
                 <span className="text-xs text-muted">Loading texts…</span>

@@ -42,8 +42,8 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder={activeTab === 'texts' ? 'Search texts or tags…' : 'Search history…'}
-            aria-label={activeTab === 'texts' ? 'Search texts' : 'Search history'}
+            placeholder="Search texts and history…"
+            aria-label="Search"
             className="w-full h-9 px-3 text-sm font-medium rounded-lg bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-[border-color,box-shadow] duration-100"
           />
           {value && (
