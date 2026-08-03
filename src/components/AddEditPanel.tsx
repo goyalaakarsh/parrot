@@ -87,7 +87,7 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
       className="flex-1 flex flex-col justify-between p-1 select-text"
     >
       <div className="space-y-4 overflow-y-auto pr-0.5">
-        <div className="flex items-center gap-2 border-b border-border pb-2.5 mb-2">
+        <div className="flex items-center gap-2 mb-3">
           <button
             type="button"
             onClick={onCancel}
@@ -97,7 +97,7 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
             <ArrowLeft size={16} aria-hidden="true" />
             <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none">Esc</kbd>
           </button>
-          <h2 className="text-sm font-semibold text-primary">
+          <h2 className="text-base font-semibold text-primary">
             {prompt ? 'Edit Text' : 'New Text'}
           </h2>
         </div>
