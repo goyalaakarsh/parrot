@@ -51,6 +51,7 @@ export function PromptCard({
         if (e.key === 'Enter') {
           e.preventDefault();
           e.stopPropagation();
+          e.stopImmediatePropagation();
           onDelete();
           setIsDeleting(false);
           return;
@@ -58,35 +59,41 @@ export function PromptCard({
         if (e.key === 'Escape') {
           e.preventDefault();
           e.stopPropagation();
+          e.stopImmediatePropagation();
           setIsDeleting(false);
           return;
         }
         if (e.key === 'ArrowLeft') {
           e.preventDefault();
+          e.stopPropagation();
           cancelRef.current?.focus();
           return;
         }
         if (e.key === 'ArrowRight') {
           e.preventDefault();
+          e.stopPropagation();
           deleteRef.current?.focus();
           return;
         }
-      }
-
-      if (e.key === 'e' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        onEdit();
-      } else if (
-        e.key === 'Delete' || 
-        (e.key === 'd' && (e.ctrlKey || e.metaKey))
-      ) {
-        e.preventDefault();
-        setIsDeleting(true);
+      } else {
+        if (e.key === 'e' && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          e.stopPropagation();
+          onEdit();
+        } else if (
+          e.key === 'Delete' || 
+          (e.key === 'd' && (e.ctrlKey || e.metaKey))
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          setIsDeleting(true);
+        }
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [isSelected, isDeleting, onEdit, onDelete]);
 
   // Auto-focus Delete button when delete confirmation appears
@@ -119,6 +126,7 @@ export function PromptCard({
   };
 
   const handleCardClick = () => {
+    if (isDeleting) return;
     onSelect();
     onPaste();
   };
@@ -130,6 +138,7 @@ export function PromptCard({
       aria-selected={isSelected}
       onClick={handleCardClick}
       onKeyDown={(e) => {
+        if (isDeleting) return;
         if (e.key === 'Enter') {
           e.preventDefault();
           handleCardClick();
@@ -169,16 +178,32 @@ export function PromptCard({
         <>
 
           <div className="flex items-start gap-2">
-            {prompt.pinned && (
-              <Star size={11} className="fill-yellow-500 text-yellow-500 shrink-0 mt-0.5" aria-label="Pinned" />
-            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onTogglePin();
+              }}
+              title={prompt.pinned ? 'Unpin' : 'Pin to top'}
+              aria-label={prompt.pinned ? 'Unpin' : 'Pin to top'}
+              className={`shrink-0 mt-0.5 p-0.5 rounded transition-all focus:outline-none focus:ring-1 focus:ring-accent ${
+                prompt.pinned
+                  ? 'opacity-100 text-yellow-500'
+                  : 'opacity-0 group-hover:opacity-100 text-muted hover:text-yellow-500'
+              }`}
+            >
+              <Star
+                size={13}
+                aria-hidden="true"
+                className={prompt.pinned ? 'fill-yellow-500 text-yellow-500' : ''}
+              />
+            </button>
             {displayDescription && (
-            <p className={`text-xs text-muted break-words whitespace-pre-line text-left flex-1 ${
-              isSelected ? 'line-clamp-5' : 'line-clamp-2'
-            }`}>
-              {truncatedDescription}
-            </p>
-          )}
+              <p className={`text-xs text-muted break-words whitespace-pre-line text-left flex-1 min-w-0 ${
+                isSelected ? 'line-clamp-5' : 'line-clamp-2'
+              }`}>
+                {truncatedDescription}
+              </p>
+            )}
           </div>
 
           {prompt.tags.length > 0 && (
@@ -198,72 +223,62 @@ export function PromptCard({
             </div>
           )}
 
-          <div className={`flex items-center justify-end gap-1.5 w-full overflow-hidden transition-[height,opacity,margin,padding] duration-100 ${
+          <div className={`flex items-center justify-end gap-1 w-full min-w-0 transition-[height,opacity,margin,padding] duration-100 ${
             isSelected 
               ? 'h-6 opacity-100 mt-2.5 pt-0.5' 
-              : 'h-0 opacity-0 group-hover:h-6 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-0.5'
+              : 'h-0 opacity-0 group-hover:h-6 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-0.5 overflow-hidden'
           }`}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onTogglePin();
-              }}
-              title={prompt.pinned ? 'Unpin' : 'Pin to top'}
-              aria-label={prompt.pinned ? 'Unpin' : 'Pin to top'}
-              tabIndex={isSelected ? 0 : -1}
-              className="p-1 rounded text-muted hover:text-yellow-500 hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
-            >
-              <Star size={13} aria-hidden="true" className={prompt.pinned ? 'fill-yellow-500 text-yellow-500' : ''} />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onCopy();
-              }}
-              title="Copy (Shift+Enter)"
-              aria-label="Copy (Shift+Enter)"
-              tabIndex={isSelected ? 0 : -1}
-              className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
-            >
-              <Clipboard size={13} aria-hidden="true" />
-              {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Shift+Enter</kbd>}
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onPaste();
-              }}
-              title="Auto-insert (Enter)"
-              aria-label="Paste (Enter)"
-              tabIndex={isSelected ? 0 : -1}
-              className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
-            >
-              <CornerDownLeft size={13} aria-hidden="true" />
-              {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Enter</kbd>}
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit();
-              }}
-              title="Edit (Ctrl+E)"
-              aria-label="Edit (Ctrl+E)"
-              tabIndex={isSelected ? 0 : -1}
-              className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
-            >
-              <Edit2 size={13} aria-hidden="true" />
-              {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Ctrl+E</kbd>}
-            </button>
-            <button
-              onClick={handleDeleteClick}
-              title="Delete (Delete)"
-              aria-label="Delete (Delete)"
-              tabIndex={isSelected ? 0 : -1}
-              className="p-1 rounded text-muted hover:text-danger hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
-            >
-              <Trash2 size={13} aria-hidden="true" />
-              {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Delete</kbd>}
-            </button>
+            <div className="flex items-center gap-1.5 min-w-0 overflow-x-auto no-scrollbar">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCopy();
+                }}
+                title="Copy (Shift+Enter)"
+                aria-label="Copy (Shift+Enter)"
+                tabIndex={isSelected ? 0 : -1}
+                className="shrink-0 p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
+              >
+                <Clipboard size={13} aria-hidden="true" />
+                {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Shift+Enter</kbd>}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPaste();
+                }}
+                title="Auto-insert (Enter)"
+                aria-label="Paste (Enter)"
+                tabIndex={isSelected ? 0 : -1}
+                className="shrink-0 p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
+              >
+                <CornerDownLeft size={13} aria-hidden="true" />
+                {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Enter</kbd>}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                }}
+                title="Edit (Ctrl+E)"
+                aria-label="Edit (Ctrl+E)"
+                tabIndex={isSelected ? 0 : -1}
+                className="shrink-0 p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
+              >
+                <Edit2 size={13} aria-hidden="true" />
+                {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Ctrl+E</kbd>}
+              </button>
+              <button
+                onClick={handleDeleteClick}
+                title="Delete (Delete)"
+                aria-label="Delete (Delete)"
+                tabIndex={isSelected ? 0 : -1}
+                className="shrink-0 p-1 rounded text-muted hover:text-danger hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
+              >
+                <Trash2 size={13} aria-hidden="true" />
+                {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Delete</kbd>}
+              </button>
+            </div>
           </div>
         </>
       )}

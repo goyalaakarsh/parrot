@@ -44,23 +44,31 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
             onChange={(e) => onChange(e.target.value)}
             placeholder="Search texts and history…"
             aria-label="Search"
-            className="w-full h-9 px-3 text-sm font-medium rounded-lg bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-[border-color,box-shadow] duration-100"
+            className="w-full h-9 pl-3 pr-14 text-sm font-medium rounded-lg bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-[border-color,box-shadow] duration-100"
           />
-          {value && (
+          {value ? (
             <button
-              onClick={() => onChange('')}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                onChange('');
+                inputRef.current?.focus();
+              }}
               aria-label="Clear search"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary text-xs"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-primary text-xs font-medium"
             >
               Clear
             </button>
+          ) : (
+            <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium pointer-events-none">
+              Ctrl+F
+            </kbd>
           )}
         </div>
         <button
           onClick={onOpenPalette}
           title="Command Palette (Ctrl+K)"
           aria-label="Command Palette"
-          className="flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-[border-color,color] duration-100"
+          className="shrink-0 flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-[border-color,color] duration-100"
         >
           <Command size={15} aria-hidden="true" />
           <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium leading-none">Ctrl+K</kbd>
@@ -69,7 +77,7 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
           onClick={onOpenSettings}
           title="Settings (Ctrl+,)"
           aria-label="Settings"
-          className="flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-[border-color,color] duration-100"
+          className="shrink-0 flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-[border-color,color] duration-100"
         >
           <Settings size={15} aria-hidden="true" />
           <kbd className="text-[9px] px-1 py-0.5 rounded bg-surface-hover border border-border text-muted font-sans font-medium leading-none">Ctrl+,</kbd>
@@ -81,7 +89,11 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
         <button
           role="tab"
           aria-selected={activeTab === 'texts'}
-          onClick={() => onTabChange('texts')}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
+            onTabChange('texts');
+            inputRef.current?.focus();
+          }}
           className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 rounded-md transition-all duration-150 ${
             activeTab === 'texts'
               ? 'bg-accent text-background shadow-sm'
@@ -98,7 +110,11 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
         <button
           role="tab"
           aria-selected={activeTab === 'history'}
-          onClick={() => onTabChange('history')}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
+            onTabChange('history');
+            inputRef.current?.focus();
+          }}
           className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 rounded-md transition-all duration-150 ${
             activeTab === 'history'
               ? 'bg-accent text-background shadow-sm'

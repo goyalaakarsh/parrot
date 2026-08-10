@@ -10,12 +10,17 @@ interface UseKeyboardProps {
   onCtrlK?: () => void;
   onCtrlT?: () => void;
   onCtrlH?: () => void;
+  onCtrlF?: () => void;
+  onCtrl1?: () => void;
+  onCtrl2?: () => void;
+  onCtrl3?: () => void;
+  onCtrlS?: () => void;
   onCtrlShiftA?: () => void;
   onCtrlQ?: () => void;
   isActive: boolean;
 }
 
-export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlT, onCtrlH, onCtrlShiftA, onCtrlQ, isActive }: UseKeyboardProps) {
+export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlT, onCtrlH, onCtrlF, onCtrl1, onCtrl2, onCtrl3, onCtrlS, onCtrlShiftA, onCtrlQ, isActive }: UseKeyboardProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   // Reset selected index if items count changes
@@ -25,6 +30,37 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Allow Ctrl+1, Ctrl+2, Ctrl+3 subtab shortcuts
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        if (e.key === '1') {
+          e.preventDefault();
+          onCtrl1?.();
+          return;
+        }
+        if (e.key === '2') {
+          e.preventDefault();
+          onCtrl2?.();
+          return;
+        }
+        if (e.key === '3') {
+          e.preventDefault();
+          onCtrl3?.();
+          return;
+        }
+        if (e.key === 's' || e.key === 'S') {
+          e.preventDefault();
+          onCtrlS?.();
+          return;
+        }
+      }
+
+      // Allow Ctrl+F from anywhere (not gated by isActive)
+      if ((e.key === 'f' || e.key === 'F') && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        onCtrlF?.();
+        return;
+      }
+
       // Allow Ctrl+K from anywhere (not gated by isActive)
       if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
@@ -99,7 +135,7 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlT, onCtrlH, onCtrlShiftA, onCtrlQ, selectedIndex, isActive]);
+  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlT, onCtrlH, onCtrlF, onCtrl1, onCtrl2, onCtrl3, onCtrlS, onCtrlShiftA, onCtrlQ, selectedIndex, isActive]);
 
   return { selectedIndex, setSelectedIndex };
 }
