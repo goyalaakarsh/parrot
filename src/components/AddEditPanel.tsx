@@ -84,9 +84,9 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
     <form 
       onSubmit={handleSubmit} 
       onKeyDown={handleKeyDown}
-      className="flex-1 flex flex-col justify-between p-1 select-text"
+      className="flex-1 flex flex-col justify-between p-1 select-text min-h-0"
     >
-      <div className="space-y-4 overflow-y-auto pr-0.5">
+      <div className="space-y-4 overflow-y-auto pr-0.5 min-h-0 flex-1">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold text-primary">
             {prompt ? 'Edit Text' : 'New Text'}

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { getCurrentWindow } from '@tauri-apps/api/window';
+import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 import { Plus, Search, Settings, Info, LogOut, Command } from 'lucide-react';
 
 interface ActionItem {
@@ -27,6 +27,18 @@ const allItems = [...actions, ...appItems];
 
 export function TrayMenuPanel() {
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Dynamically resize window height to fit exact menu content height
+  useEffect(() => {
+    if (menuRef.current) {
+      const rect = menuRef.current.getBoundingClientRect();
+      const contentHeight = Math.ceil(rect.height);
+      if (contentHeight > 0) {
+        getCurrentWindow().setSize(new LogicalSize(220, contentHeight)).catch(() => {});
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -49,43 +61,48 @@ export function TrayMenuPanel() {
   }, [focusedIndex]);
 
   return (
-    <div role="menu" aria-label="Parrot tray menu" className="w-[220px] bg-[#1e1e1e] border border-[#2d2d2d] rounded-lg shadow-lg flex flex-col select-none overflow-hidden font-sans">
-      <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-[#5a5a5a]">Quick Actions</div>
+    <div
+      ref={menuRef}
+      role="menu"
+      aria-label="Parrot tray menu"
+      className="w-full bg-[#1e1e1e] border border-[#2d2d2d] rounded-lg shadow-lg flex flex-col select-none overflow-hidden font-sans p-1"
+    >
+      <div className="px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-[#5a5a5a] shrink-0">Quick Actions</div>
       {actions.map((item, idx) => (
         <button
           key={`action-${item.id}`}
           role="menuitem"
-          className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left transition-colors ${
+          className={`w-full shrink-0 flex items-center gap-2 px-2.5 py-2 text-xs text-left rounded-md transition-colors ${
             idx === focusedIndex ? 'bg-[#2a2a2a] text-accent' : 'text-[#e0e0e0]'
           } hover:bg-[#2a2a2a]`}
           onClick={() => item.action()}
           onMouseEnter={() => setFocusedIndex(idx)}
         >
-            <span className="shrink-0 text-muted" aria-hidden="true">{item.icon}</span>
-          <span className="flex-1">{item.label}</span>
+          <span className="shrink-0 text-muted" aria-hidden="true">{item.icon}</span>
+          <span className="flex-1 truncate">{item.label}</span>
           {item.shortcut && (
-            <kbd className="text-[9px] px-1 py-0.5 rounded bg-[#2d2d2d] border border-[#3a3a3a] text-[#888] font-sans">
+            <kbd className="shrink-0 text-[9px] px-1 py-0.5 rounded bg-[#2d2d2d] border border-[#3a3a3a] text-[#888] font-sans">
               {item.shortcut}
             </kbd>
           )}
         </button>
       ))}
 
-      <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-[#5a5a5a]">App</div>
+      <div className="px-2.5 py-1.5 mt-1 text-[9px] font-semibold uppercase tracking-wider text-[#5a5a5a] shrink-0">App</div>
       {appItems.map((item, idx) => {
         const globalIdx = actions.length + idx;
         return (
           <button
             key={`app-${item.id}`}
             role="menuitem"
-            className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left transition-colors ${
+            className={`w-full shrink-0 flex items-center gap-2 px-2.5 py-2 text-xs text-left rounded-md transition-colors ${
               globalIdx === focusedIndex ? 'bg-[#2a2a2a] text-accent' : 'text-[#e0e0e0]'
             } hover:bg-[#2a2a2a]`}
             onClick={() => item.action()}
             onMouseEnter={() => setFocusedIndex(globalIdx)}
           >
-          <span className="shrink-0 text-muted" aria-hidden="true">{item.icon}</span>
-            <span className="flex-1">{item.label}</span>
+            <span className="shrink-0 text-muted" aria-hidden="true">{item.icon}</span>
+            <span className="flex-1 truncate">{item.label}</span>
           </button>
         );
       })}

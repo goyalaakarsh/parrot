@@ -16,10 +16,8 @@
         "title": "Parrot",
         "width": 380,
         "height": 480,
-        "minWidth": 380,
-        "minHeight": 480,
-        "maxWidth": 380,
-        "maxHeight": 480,
+        "minWidth": 340,
+        "minHeight": 420,
         "resizable": false,
         "decorations": false,
         "transparent": true,
@@ -32,7 +30,7 @@
         "label": "tray_menu",
         "title": "Parrot Menu",
         "width": 220,
-        "height": 260,
+        "height": 268,
         "resizable": false,
         "decorations": false,
         "transparent": true,
@@ -67,8 +65,7 @@
         "installMode": "currentUser"
       },
       "wix": {
-        "bannerPath": "./icons/banner.bmp",
-        "dialogImagePath": "./icons/dialog.bmp"
+        "bannerPath": "./icons/banner.bmp"
       }
     }
   },
