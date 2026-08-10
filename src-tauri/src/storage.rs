@@ -50,7 +50,7 @@ pub struct Settings {
     pub global_shortcut: String,
     #[serde(default = "default_quick_capture_shortcut")]
     pub quick_capture_shortcut: String,
-    #[serde(default)]
+    #[serde(default = "default_launch_at_startup")]
     pub launch_at_startup: bool,
     #[serde(default = "default_text_retention")]
     pub text_history_retention_days: u32,
@@ -63,13 +63,14 @@ pub struct Settings {
 fn default_text_retention() -> u32 { 15 }
 fn default_image_retention() -> u32 { 5 }
 fn default_theme() -> String { "dark".to_string() }
+fn default_launch_at_startup() -> bool { true }
 
 impl Default for Settings {
     fn default() -> Self {
         Settings {
             global_shortcut: "CommandOrControl+Shift+Space".to_string(),
             quick_capture_shortcut: "CommandOrControl+Shift+C".to_string(),
-            launch_at_startup: false,
+            launch_at_startup: true,
             text_history_retention_days: 15,
             image_history_retention_days: 5,
             theme: "dark".to_string(),

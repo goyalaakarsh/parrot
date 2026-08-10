@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { ArrowLeft, Command, Github } from 'lucide-react';
 
 interface AboutPanelProps {
@@ -5,8 +6,23 @@ interface AboutPanelProps {
 }
 
 export function AboutPanel({ onBack }: AboutPanelProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onBack();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onBack]);
+
+  const openUrl = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <div className="flex-1 flex flex-col p-1 select-text">
+    <div className="flex-1 flex flex-col p-1 select-text min-h-0 overflow-y-auto">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-semibold text-primary">About</h2>
         <button
@@ -20,7 +36,7 @@ export function AboutPanel({ onBack }: AboutPanelProps) {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
-        <div className="w-16 h-16 rounded-2xl  flex items-center justify-center shadow-inner">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-inner">
           <img
             src="/parrot-icon-transparent.png"
             alt="Parrot"
@@ -45,10 +61,23 @@ export function AboutPanel({ onBack }: AboutPanelProps) {
             <span>Ctrl+K</span>
           </div>
           <span className="text-border">|</span>
-          <div className="flex items-center gap-1.5 text-[10px] text-muted">
+          <button
+            onClick={() => openUrl('https://github.com/goyalaakarsh/parrot')}
+            className="flex items-center gap-1.5 text-[10px] text-muted hover:text-accent transition-colors"
+          >
             <Github size={11} aria-hidden="true" />
-            <span>Parrot</span>
-          </div>
+            <span className="underline">Parrot</span>
+          </button>
+        </div>
+
+        <div className="text-xs text-muted mt-1">
+          made by{' '}
+          <button
+            onClick={() => openUrl('https://aakarshgoyal.in')}
+            className="text-accent underline font-medium hover:opacity-80 transition-opacity"
+          >
+            aakarsh
+          </button>
         </div>
       </div>
     </div>

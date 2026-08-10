@@ -179,6 +179,16 @@ export default function App() {
     }
   };
 
+  // History Delete Flow
+  const handleDeleteHistory = async (id: string) => {
+    try {
+      await deleteHistoryEntry(id);
+      showToast('History entry deleted', 'success');
+    } catch (err: any) {
+      showToast('Delete failed: ' + err.toString(), 'error');
+    }
+  };
+
   // Keyboard navigation handlers
   const handleKeyboardEnter = useCallback((index: number) => {
     if (isSearching) {
@@ -250,6 +260,25 @@ export default function App() {
       setView('list');
       setActiveTab('history');
       setSearchFocused(true);
+    },
+    onCtrlF: () => {
+      setView('list');
+      setSearchFocused(false);
+      setTimeout(() => setSearchFocused(true), 0);
+    },
+    onCtrl1: () => {
+      if (view === 'list' && activeTab === 'history') setHistoryFilter('all');
+    },
+    onCtrl2: () => {
+      if (view === 'list' && activeTab === 'history') setHistoryFilter('text');
+    },
+    onCtrl3: () => {
+      if (view === 'list' && activeTab === 'history') setHistoryFilter('images');
+    },
+    onCtrlS: () => {
+      if (view === 'list' && activeTab === 'history' && displayHistory[selectedIndex]) {
+        handlePromoteHistory(displayHistory[selectedIndex]);
+      }
     },
     onCtrlShiftA: () => setView('about'),
     onCtrlQ: () => invoke('exit_app'),
@@ -454,7 +483,7 @@ export default function App() {
   };
 
   return (
-    <div className="w-full h-full bg-background border border-border rounded-lg overflow-clip flex flex-col p-3 select-none">
+    <div className="relative w-full h-full bg-background border border-border rounded-lg overflow-clip flex flex-col p-3 select-none">
       {showOnboarding && (
         <Onboarding onDismiss={() => setShowOnboarding(false)} />
       )}
@@ -554,7 +583,7 @@ export default function App() {
                 onCopy={handleCopyHistory}
                 onPaste={handlePasteHistory}
                 onPromote={handlePromoteHistory}
-                onDelete={deleteHistoryEntry}
+                onDelete={handleDeleteHistory}
                 selectedIndex={selectedIndex}
                 onSelectPrompt={setSelectedIndex}
               />

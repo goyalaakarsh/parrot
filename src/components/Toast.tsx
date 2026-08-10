@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { Check, AlertCircle } from 'lucide-react';
 
 interface ToastProps {
   message: string;
@@ -12,7 +13,7 @@ export function Toast({ message, type = 'success', onClose }: ToastProps) {
   const startTimer = useCallback(() => {
     timerRef.current = setTimeout(() => {
       onClose();
-    }, 2500);
+    }, 2000);
   }, [onClose]);
 
   useEffect(() => {
@@ -36,17 +37,23 @@ export function Toast({ message, type = 'success', onClose }: ToastProps) {
 
   return (
     <div
-      role="alert"
+      role="status"
+      aria-live="polite"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[340px] animate-slide-up"
+      className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50 animate-slide-up pointer-events-auto shrink-0"
     >
-      <div className={`px-4 py-2.5 rounded-lg border text-sm shadow-xl flex items-center gap-2 custom-blur-bg ${
+      <div className={`px-3 py-1.5 rounded-full border shadow-lg backdrop-blur-md flex items-center gap-1.5 text-xs font-medium whitespace-nowrap transition-all select-none ${
         type === 'error' 
-          ? 'border-danger/30 text-danger bg-danger/10' 
-          : 'border-accent/30 text-accent bg-accent-dim/20'
+          ? 'bg-surface/95 border-danger/40 text-primary shadow-danger/10' 
+          : 'bg-surface/95 border-accent/40 text-primary shadow-accent/10'
       }`}>
-        <span className="font-medium">{message}</span>
+        {type === 'error' ? (
+          <AlertCircle size={13} className="text-danger shrink-0" aria-hidden="true" />
+        ) : (
+          <Check size={13} className="text-accent shrink-0" aria-hidden="true" />
+        )}
+        <span>{message}</span>
       </div>
     </div>
   );

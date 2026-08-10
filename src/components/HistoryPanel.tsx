@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Clipboard, CornerDownLeft, Save, Trash2, Clock, History, Expand } from 'lucide-react';
+import { Clipboard, CornerDownLeft, Save, Trash2, Clock, History, Expand, AlertCircle } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { HistoryEntry } from '../types';
@@ -47,7 +47,13 @@ export function HistoryPanel({
 }: HistoryPanelProps) {
   const [expandedImageId, setExpandedImageId] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<Map<string, string>>(new Map());
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const entryRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+  // Reset deleting state when selection changes
+  useEffect(() => {
+    setDeletingId(null);
+  }, [selectedIndex]);
 
   // Load image URLs on mount / when entries change
   useEffect(() => {
@@ -81,6 +87,45 @@ export function HistoryPanel({
     }
   }, [selectedIndex]);
 
+  // Keyboard shortcuts for delete confirmation and actions
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (document.activeElement?.tagName === 'TEXTAREA') return;
+
+      const currentEntry = entries[selectedIndex];
+
+      if (deletingId) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          onDelete(deletingId);
+          setDeletingId(null);
+          return;
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          setDeletingId(null);
+          return;
+        }
+      } else {
+        if (e.key === 'Delete' || (e.key === 'd' && (e.ctrlKey || e.metaKey))) {
+          if (currentEntry) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            setDeletingId(currentEntry.id);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [entries, selectedIndex, deletingId, onDelete]);
+
   if (totalCount === 0) {
     return (
       <div role="status" aria-label="No history" className="flex-1 flex flex-col items-center justify-center p-6 text-center">
@@ -95,21 +140,33 @@ export function HistoryPanel({
     );
   }
 
+  const filters = [
+    { id: 'all', label: `All (${totalCount})`, shortcut: 'Ctrl+1' },
+    { id: 'text', label: 'Text', shortcut: 'Ctrl+2' },
+    { id: 'images', label: 'Images', shortcut: 'Ctrl+3' },
+  ] as const;
+
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      {/* Filter pills */}
+      {/* Subtab filter pills with shortcut badges */}
       <div className="flex items-center gap-1 mb-2 shrink-0">
-        {(['all', 'text', 'images'] as const).map((f) => (
+        {filters.map((f) => (
           <button
-            key={f}
-            onClick={() => { onFilterChange(f); onSelectPrompt(0); }}
-            className={`text-[10px] font-semibold px-2 py-1 rounded transition-all capitalize ${
-              filter === f
+            key={f.id}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => { onFilterChange(f.id); onSelectPrompt(0); }}
+            className={`text-[10px] font-semibold px-2 py-1 rounded transition-all flex items-center gap-1.5 ${
+              filter === f.id
                 ? 'text-accent bg-accent-dim/15'
                 : 'text-muted hover:text-primary'
             }`}
           >
-            {f === 'all' ? `All (${totalCount})` : f === 'text' ? `Text` : `Images`}
+            <span>{f.label}</span>
+            <kbd className={`text-[8px] px-1 py-0.5 rounded font-sans font-medium leading-none ${
+              filter === f.id
+                ? 'bg-accent/20 text-accent border border-accent/30'
+                : 'bg-surface-hover border border-border text-muted'
+            }`}>{f.shortcut}</kbd>
           </button>
         ))}
       </div>
@@ -120,6 +177,7 @@ export function HistoryPanel({
           const isImage = !!entry.imagePath;
           const imageUrl = imageUrls.get(entry.id);
           const isSelected = idx === selectedIndex;
+          const isDeletingThis = deletingId === entry.id;
 
           return (
             <div
@@ -134,94 +192,131 @@ export function HistoryPanel({
                   : 'border-transparent bg-surface hover:border-border'
               }`}
             >
-              {isImage ? (
-                <div className="flex flex-col gap-2">
-                  {imageUrl && (
-                    <div
-                      className="relative cursor-pointer rounded-md overflow-hidden border border-border"
+              {isDeletingThis ? (
+                <div className="flex items-center justify-between gap-2 py-1 animate-slide-up">
+                  <div className="flex items-center gap-1.5 text-danger text-xs font-semibold">
+                    <AlertCircle size={14} aria-hidden="true" />
+                    <span>Delete this history entry?</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setExpandedImageId(expandedImageId === entry.id ? null : entry.id);
+                        setDeletingId(null);
                       }}
+                      className="px-2 py-0.5 text-xs rounded bg-surface border border-border text-muted hover:text-primary transition-all"
                     >
-                      <img
-                        src={imageUrl}
-                        alt="Clipboard image"
-                        className={`w-full object-cover ${expandedImageId === entry.id ? 'max-h-[300px]' : 'max-h-[120px]'}`}
-                        style={{ objectPosition: 'top' }}
-                      />
-                      <div className="absolute top-1.5 right-1.5 p-1 rounded bg-background/60 text-muted opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Expand size={12} />
-                      </div>
-                    </div>
-                  )}
-                  {entry.imageWidth && entry.imageHeight && (
-                    <span className="text-[10px] text-muted">{entry.imageWidth} × {entry.imageHeight}</span>
-                  )}
+                      Cancel
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(entry.id);
+                        setDeletingId(null);
+                      }}
+                      className="px-2 py-0.5 text-xs rounded bg-danger/20 border border-danger/30 text-danger hover:bg-danger/30 transition-all font-medium"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <p className={`text-xs text-muted break-words whitespace-pre-line text-left ${
-                  isSelected ? 'line-clamp-5' : 'line-clamp-3'
-                }`}>
-                  {entry.text.length > 150 ? `${entry.text.substring(0, 150)}…` : entry.text}
-                </p>
+                <>
+                  {isImage ? (
+                    <div className="flex flex-col gap-2">
+                      {imageUrl && (
+                        <div
+                          className="relative cursor-pointer rounded-md overflow-hidden border border-border"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedImageId(expandedImageId === entry.id ? null : entry.id);
+                          }}
+                        >
+                          <img
+                            src={imageUrl}
+                            alt="Clipboard image"
+                            className={`w-full object-cover ${expandedImageId === entry.id ? 'max-h-[300px]' : 'max-h-[120px]'}`}
+                            style={{ objectPosition: 'top' }}
+                          />
+                          <div className="absolute top-1.5 right-1.5 p-1 rounded bg-background/60 text-muted opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Expand size={12} />
+                          </div>
+                        </div>
+                      )}
+                      {entry.imageWidth && entry.imageHeight && (
+                        <span className="text-[10px] text-muted">{entry.imageWidth} × {entry.imageHeight}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <p className={`text-xs text-muted break-words whitespace-pre-line text-left ${
+                      isSelected ? 'line-clamp-5' : 'line-clamp-3'
+                    }`}>
+                      {entry.text.length > 150 ? `${entry.text.substring(0, 150)}…` : entry.text}
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-2 mt-2 text-[10px] text-muted">
+                    {entry.sourceApp && (
+                      <span className="flex items-center gap-1">
+                        <span className="px-1 py-0.5 rounded bg-surface-hover border border-border">{entry.sourceApp}</span>
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Clock size={10} aria-hidden="true" />
+                      {formatRelativeTime(entry.capturedAt)}
+                    </span>
+                  </div>
+
+                  <div className={`flex items-center justify-end gap-1.5 w-full overflow-hidden transition-[height,opacity,margin,padding] duration-100 ${
+                    isSelected
+                      ? 'h-6 opacity-100 mt-2.5 pt-0.5'
+                      : 'h-0 opacity-0 group-hover:h-6 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-0.5'
+                  }`}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onCopy(entry); }}
+                      title="Copy (Shift+Enter)"
+                      aria-label="Copy"
+                      className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1"
+                    >
+                      <Clipboard size={13} aria-hidden="true" />
+                      {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Shift+Enter</kbd>}
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onPaste(entry); }}
+                      title="Paste (Enter)"
+                      aria-label="Paste"
+                      className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1"
+                    >
+                      <CornerDownLeft size={13} aria-hidden="true" />
+                      {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Enter</kbd>}
+                    </button>
+                    {!isImage && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onPromote(entry); }}
+                        title="Save to My Texts (Ctrl+S)"
+                        aria-label="Save to My Texts"
+                        className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1"
+                      >
+                        <Save size={13} aria-hidden="true" />
+                        <span className="text-[10px] font-medium">Save</span>
+                        {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Ctrl+S</kbd>}
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingId(entry.id);
+                      }}
+                      title="Delete (Delete)"
+                      aria-label="Delete"
+                      className="p-1 rounded text-muted hover:text-danger hover:bg-surface-hover transition-all flex items-center gap-1"
+                    >
+                      <Trash2 size={13} aria-hidden="true" />
+                      {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Delete</kbd>}
+                    </button>
+                  </div>
+                </>
               )}
-
-              <div className="flex items-center gap-2 mt-2 text-[10px] text-muted">
-                {entry.sourceApp && (
-                  <span className="flex items-center gap-1">
-                    <span className="px-1 py-0.5 rounded bg-surface-hover border border-border">{entry.sourceApp}</span>
-                  </span>
-                )}
-                <span className="flex items-center gap-1">
-                  <Clock size={10} aria-hidden="true" />
-                  {formatRelativeTime(entry.capturedAt)}
-                </span>
-              </div>
-
-              <div className={`flex items-center justify-end gap-1.5 w-full overflow-hidden transition-[height,opacity,margin,padding] duration-100 ${
-                isSelected
-                  ? 'h-6 opacity-100 mt-2.5 pt-0.5'
-                  : 'h-0 opacity-0 group-hover:h-6 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-0.5'
-              }`}>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onCopy(entry); }}
-                  title="Copy (Shift+Enter)"
-                  aria-label="Copy"
-                  className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1"
-                >
-                  <Clipboard size={13} aria-hidden="true" />
-                  {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Shift+Enter</kbd>}
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onPaste(entry); }}
-                  title="Paste (Enter)"
-                  aria-label="Paste"
-                  className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1"
-                >
-                  <CornerDownLeft size={13} aria-hidden="true" />
-                  {isSelected && <kbd className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-border text-muted font-sans font-medium leading-none shadow-sm">Enter</kbd>}
-                </button>
-                {!isImage && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onPromote(entry); }}
-                    title="Save to My Texts"
-                    aria-label="Save to My Texts"
-                    className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1"
-                  >
-                    <Save size={13} aria-hidden="true" />
-                    <span className="text-[10px] font-medium">Save</span>
-                  </button>
-                )}
-                <button
-                  onClick={(e) => { e.stopPropagation(); onDelete(entry.id); }}
-                  title="Delete"
-                  aria-label="Delete"
-                  className="p-1 rounded text-muted hover:text-danger hover:bg-surface-hover transition-all"
-                >
-                  <Trash2 size={13} aria-hidden="true" />
-                </button>
-              </div>
             </div>
           );
         })}
