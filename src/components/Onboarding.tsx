@@ -1,4 +1,4 @@
-import { Keyboard, Search, Clipboard, CornerDownLeft, ArrowUpDown, Star, Clock, Zap, Tags } from 'lucide-react';
+import { Keyboard, Search, Clipboard, CornerDownLeft, ArrowUpDown, Star, Clock, Zap, Tags, Link2, Users } from 'lucide-react';
 
 interface OnboardingProps {
   onDismiss: () => void;
@@ -14,13 +14,25 @@ const features = [
   {
     icon: CornerDownLeft,
     title: 'Instant Paste',
-    desc: 'Select a text and press Enter to type it out',
+    desc: 'Select a text or link and press Enter to paste',
     shortcut: 'Enter',
+  },
+  {
+    icon: Link2,
+    title: 'Saved Links',
+    desc: 'Save web links with auto page titles & favicons',
+    shortcut: 'Ctrl+L tab',
+  },
+  {
+    icon: Users,
+    title: 'Identities (ID)',
+    desc: 'Store personal info & copy fields or full blocks',
+    shortcut: 'Ctrl+I tab',
   },
   {
     icon: Clipboard,
     title: 'Copy to Clipboard',
-    desc: 'Copy without pasting using Shift+Enter',
+    desc: 'Copy items without pasting using Shift+Enter',
     shortcut: 'Shift+Enter',
   },
   {
@@ -32,13 +44,13 @@ const features = [
   {
     icon: Star,
     title: 'Pin Favorites',
-    desc: 'Pin important texts to keep them on top',
+    desc: 'Pin important texts, links & identities on top',
     shortcut: 'Click the star',
   },
   {
     icon: Tags,
     title: 'Tag Filtering',
-    desc: 'Click a tag to filter all matching texts',
+    desc: 'Click a tag to filter all matching items',
     shortcut: 'Click #tag',
   },
   {
@@ -50,7 +62,7 @@ const features = [
   {
     icon: Search,
     title: 'Quick Search',
-    desc: 'Type to filter texts or history instantly',
+    desc: 'Type to filter texts, links, or history instantly',
     shortcut: 'Type to filter',
   },
 ];
@@ -59,12 +71,17 @@ const shortcuts = [
   { keys: 'Ctrl+K', action: 'Command Palette' },
   { keys: 'Ctrl+Shift+Space', action: 'Toggle Parrot' },
   { keys: 'Ctrl+Shift+C', action: 'Quick Capture' },
+  { keys: 'Ctrl+T', action: 'Go to Texts tab' },
+  { keys: 'Ctrl+H', action: 'Go to History tab' },
+  { keys: 'Ctrl+L', action: 'Go to Links tab' },
+  { keys: 'Ctrl+I', action: 'Go to Identity tab' },
   { keys: '↑ / ↓', action: 'Navigate items' },
-  { keys: 'Enter', action: 'Paste selected text' },
-  { keys: 'Shift+Enter', action: 'Copy selected text' },
-  { keys: 'Ctrl+N', action: 'Add new text' },
-  { keys: 'Ctrl+E', action: 'Edit selected text' },
-  { keys: 'Delete / Ctrl+D', action: 'Delete selected text' },
+  { keys: 'Enter', action: 'Paste selected item' },
+  { keys: 'Shift+Enter', action: 'Copy selected item' },
+  { keys: 'Ctrl+B', action: 'Copy full identity block' },
+  { keys: 'Ctrl+N', action: 'Add new item' },
+  { keys: 'Ctrl+E', action: 'Edit selected item' },
+  { keys: 'Delete / Ctrl+D', action: 'Delete selected item' },
   { keys: 'Ctrl+,', action: 'Open settings' },
   { keys: 'Esc', action: 'Close Parrot' },
 ];
@@ -86,24 +103,24 @@ export function Onboarding({ onDismiss }: OnboardingProps) {
           Welcome to Parrot
         </h1>
         <p className="text-xs text-muted text-center max-w-[280px] mb-6 leading-relaxed">
-          Your texts, always a keystroke away.
-          Save, capture, and paste text snippets in any app.
+          Your texts, links & identities, always a keystroke away.
+          Save, capture, and fill info in any app.
         </p>
 
-        {/* Feature grid - 4 columns */}
-        <div className="grid grid-cols-2 gap-2 w-full max-w-[320px] mb-6">
+        {/* Feature grid - 2 columns */}
+        <div className="grid grid-cols-2 gap-2 w-full max-w-[340px] mb-6">
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="flex flex-col gap-1.5 p-3 rounded-lg bg-surface border border-border"
+              className="flex flex-col gap-1.5 p-2.5 rounded-lg bg-surface border border-border"
             >
               <div className="flex items-center gap-1.5">
-                <feature.icon size={13} className="text-accent" aria-hidden="true" />
-                <span className="text-[11px] font-medium text-primary">
+                <feature.icon size={13} className="text-accent shrink-0" aria-hidden="true" />
+                <span className="text-[11px] font-medium text-primary truncate">
                   {feature.title}
                 </span>
               </div>
-              <p className="text-[10px] text-muted leading-relaxed">
+              <p className="text-[10px] text-muted leading-relaxed line-clamp-2">
                 {feature.desc}
               </p>
               <span className="mt-0.5 text-[9px] font-mono text-accent/80 bg-accent-dim/20 px-1.5 py-0.5 rounded self-start">
@@ -114,7 +131,7 @@ export function Onboarding({ onDismiss }: OnboardingProps) {
         </div>
 
         {/* Shortcut table */}
-        <details className="w-full max-w-[320px] group">
+        <details className="w-full max-w-[340px] group">
           <summary className="text-[10px] text-muted cursor-pointer hover:text-primary transition-colors list-none flex items-center gap-1 select-none">
             <ArrowUpDown size={11} aria-hidden="true" />
             All keyboard shortcuts

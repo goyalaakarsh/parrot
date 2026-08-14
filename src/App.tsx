@@ -15,22 +15,35 @@ import { Toast } from './components/Toast';
 import { Onboarding } from './components/Onboarding';
 import { HistoryPanel } from './components/HistoryPanel';
 import { UnifiedSearchResults } from './components/UnifiedSearchResults';
+import { LinkList } from './components/LinkList';
+import { AddEditLinkPanel } from './components/AddEditLinkPanel';
+import { IdentityList } from './components/IdentityList';
+import { AddEditIdentityPanel } from './components/AddEditIdentityPanel';
 
 import { usePrompts } from './hooks/usePrompts';
 import { useSearch } from './hooks/useSearch';
 import { useHistory } from './hooks/useHistory';
+import { useLinks } from './hooks/useLinks';
+import { useIdentities } from './hooks/useIdentities';
 import { useKeyboard } from './hooks/useKeyboard';
-import { Prompt, HistoryEntry, Settings } from './types';
+import { Prompt, HistoryEntry, SavedLink, Identity, Settings } from './types';
 
 export default function App() {
-  const [view, setView] = useState<'list' | 'add' | 'edit' | 'settings' | 'about' | 'command-palette' | 'tray-menu'>('list');
+  const [view, setView] = useState<'list' | 'add' | 'edit' | 'settings' | 'about' | 'command-palette' | 'tray-menu' | 'add-link' | 'edit-link' | 'add-identity' | 'edit-identity'>('list');
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(true);
-  const [activeTab, setActiveTab] = useState<'texts' | 'history'>('texts');
+  const [activeTab, setActiveTab] = useState<'texts' | 'history' | 'links' | 'identity'>('texts');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [historyFilter, setHistoryFilter] = useState<'all' | 'text' | 'images'>('all');
   const [theme, setTheme] = useState<'dark' | 'light' | 'system'>('dark');
+
+  // Links state
+  const [editingLink, setEditingLink] = useState<SavedLink | null>(null);
+  const [linkCategoryFilter, setLinkCategoryFilter] = useState('');
+
+  // Identity state
+  const [editingIdentity, setEditingIdentity] = useState<Identity | null>(null);
 
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -69,6 +82,8 @@ export default function App() {
   // CRUD hooks
   const { prompts, loading, addPrompt, updatePrompt, deletePrompt, markPromptUsed, togglePin, refresh: refreshPrompts } = usePrompts(showToast);
   const { historyEntries, loading: historyLoading, deleteHistoryEntry, promoteToPrompt, refresh: refreshHistory } = useHistory(showToast);
+  const { links, loading: linksLoading, addLink, updateLink, deleteLink, markLinkUsed, togglePin: toggleLinkPin, refresh: refreshLinks } = useLinks(showToast);
+  const { identities, loading: identitiesLoading, addIdentity, updateIdentity, deleteIdentity, togglePin: toggleIdentityPin, refresh: refreshIdentities } = useIdentities(showToast);
 
   // Search filter hook (for My Texts tab)
   const filteredPrompts = useSearch(prompts, searchQuery, activeTag);
@@ -86,6 +101,37 @@ export default function App() {
 
   // Whether we're in unified search mode (showing results from both tabs)
   const isSearching = searchQuery.trim().length > 0;
+
+  // Search filter for links
+  const filteredLinks = useMemo(() => {
+    let result = links;
+    if (linkCategoryFilter) {
+      result = result.filter(l => l.category === linkCategoryFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(l => {
+        if (l.title.toLowerCase().includes(q)) return true;
+        if (l.url.toLowerCase().includes(q)) return true;
+        if (l.description.toLowerCase().includes(q)) return true;
+        if (l.category.toLowerCase().includes(q)) return true;
+        if (l.tags.some(t => t.toLowerCase().includes(q))) return true;
+        return false;
+      });
+    }
+    return result;
+  }, [links, searchQuery, linkCategoryFilter]);
+
+  // Search filter for identities
+  const filteredIdentities = useMemo(() => {
+    if (!searchQuery.trim()) return identities;
+    const q = searchQuery.toLowerCase().trim();
+    return identities.filter(i => {
+      if (i.name.toLowerCase().includes(q)) return true;
+      if (i.fields.some(f => f.label.toLowerCase().includes(q) || f.value.toLowerCase().includes(q))) return true;
+      return false;
+    });
+  }, [identities, searchQuery]);
 
   const displayHistory = useMemo(() => {
     if (historyFilter === 'text') return filteredHistory.filter(e => !e.imagePath);
@@ -189,41 +235,132 @@ export default function App() {
     }
   };
 
+  // Links Copy Flow
+  const handleCopyLink = async (link: SavedLink) => {
+    try {
+      await writeText(link.url);
+      markLinkUsed(link.id);
+      showToast('Link copied!', 'success');
+      setTimeout(async () => {
+        const win = getCurrentWindow();
+        await win.hide();
+      }, 150);
+    } catch (err: any) {
+      console.error('Copy failed:', err);
+      showToast('Copy failed: ' + err.toString(), 'error');
+    }
+  };
+
+  // Links Paste Flow
+  const handlePasteLink = async (link: SavedLink) => {
+    try {
+      const hwnd = await invoke<number>('get_foreground_hwnd');
+      await writeText(link.url);
+      markLinkUsed(link.id);
+      const win = getCurrentWindow();
+      await win.hide();
+      await invoke('paste_to_previous_window', { hwnd });
+    } catch (err: any) {
+      console.error('Auto-paste failed:', err);
+      showToast('Auto-paste failed: ' + err.toString(), 'error');
+    }
+  };
+
+  // Identity Copy Field Flow
+  const handleCopyIdentityField = async (value: string) => {
+    try {
+      await writeText(value);
+      showToast('Copied!', 'success');
+      setTimeout(async () => {
+        const win = getCurrentWindow();
+        await win.hide();
+      }, 150);
+    } catch (err: any) {
+      showToast('Copy failed: ' + err.toString(), 'error');
+    }
+  };
+
+  // Identity Copy Block Flow
+  const handleCopyIdentityBlock = async (identity: Identity) => {
+    try {
+      const block = identity.fields
+        .filter(f => f.value.trim())
+        .map(f => `${f.label}: ${f.value}`)
+        .join('\n');
+      await writeText(block);
+      showToast('Identity block copied!', 'success');
+      setTimeout(async () => {
+        const win = getCurrentWindow();
+        await win.hide();
+      }, 150);
+    } catch (err: any) {
+      showToast('Copy failed: ' + err.toString(), 'error');
+    }
+  };
+
   // Keyboard navigation handlers
   const handleKeyboardEnter = useCallback((index: number) => {
     if (isSearching) {
-      // Unified search mode: index 0..filteredPrompts.length-1 = texts, then history
+      // Unified search mode: index spans texts, history, links, identities
       if (index < filteredPrompts.length) {
         handlePastePrompt(filteredPrompts[index]);
-      } else {
+      } else if (index < filteredPrompts.length + displayHistory.length) {
         const historyIdx = index - filteredPrompts.length;
         if (displayHistory[historyIdx]) {
           handlePasteHistory(displayHistory[historyIdx]);
+        }
+      } else if (index < filteredPrompts.length + displayHistory.length + filteredLinks.length) {
+        const linkIdx = index - filteredPrompts.length - displayHistory.length;
+        if (filteredLinks[linkIdx]) {
+          handlePasteLink(filteredLinks[linkIdx]);
+        }
+      } else {
+        const identityIdx = index - filteredPrompts.length - displayHistory.length - filteredLinks.length;
+        if (filteredIdentities[identityIdx]) {
+          handleCopyIdentityBlock(filteredIdentities[identityIdx]);
         }
       }
     } else if (activeTab === 'texts' && filteredPrompts[index]) {
       handlePastePrompt(filteredPrompts[index]);
     } else if (activeTab === 'history' && displayHistory[index]) {
       handlePasteHistory(displayHistory[index]);
+    } else if (activeTab === 'links' && filteredLinks[index]) {
+      handlePasteLink(filteredLinks[index]);
+    } else if (activeTab === 'identity' && filteredIdentities[index]) {
+      handleCopyIdentityBlock(filteredIdentities[index]);
     }
-  }, [isSearching, activeTab, filteredPrompts, displayHistory, handlePastePrompt, handlePasteHistory]);
+  }, [isSearching, activeTab, filteredPrompts, displayHistory, filteredLinks, filteredIdentities, handlePastePrompt, handlePasteHistory, handlePasteLink, handleCopyIdentityBlock]);
 
   const handleKeyboardShiftEnter = useCallback((index: number) => {
     if (isSearching) {
       if (index < filteredPrompts.length) {
         handleCopyPrompt(filteredPrompts[index]);
-      } else {
+      } else if (index < filteredPrompts.length + displayHistory.length) {
         const historyIdx = index - filteredPrompts.length;
         if (displayHistory[historyIdx]) {
           handleCopyHistory(displayHistory[historyIdx]);
+        }
+      } else if (index < filteredPrompts.length + displayHistory.length + filteredLinks.length) {
+        const linkIdx = index - filteredPrompts.length - displayHistory.length;
+        if (filteredLinks[linkIdx]) {
+          handleCopyLink(filteredLinks[linkIdx]);
+        }
+      } else {
+        const identityIdx = index - filteredPrompts.length - displayHistory.length - filteredLinks.length;
+        if (filteredIdentities[identityIdx]) {
+          handleCopyIdentityBlock(filteredIdentities[identityIdx]);
         }
       }
     } else if (activeTab === 'texts' && filteredPrompts[index]) {
       handleCopyPrompt(filteredPrompts[index]);
     } else if (activeTab === 'history' && displayHistory[index]) {
       handleCopyHistory(displayHistory[index]);
+    } else if (activeTab === 'links' && filteredLinks[index]) {
+      handleCopyLink(filteredLinks[index]);
+    } else if (activeTab === 'identity' && filteredIdentities[index]) {
+      handleCopyIdentityBlock(filteredIdentities[index]);
     }
-  }, [isSearching, activeTab, filteredPrompts, displayHistory, handleCopyPrompt, handleCopyHistory]);
+  }, [isSearching, activeTab, filteredPrompts, displayHistory, filteredLinks, filteredIdentities, handleCopyPrompt, handleCopyHistory, handleCopyLink, handleCopyIdentityBlock]);
 
   const handleKeyboardEscape = useCallback(async () => {
     if (searchQuery.length > 0) {
@@ -237,8 +374,11 @@ export default function App() {
 
   // Total items count for keyboard navigation
   const keyboardItemCount = isSearching
-    ? filteredPrompts.length + displayHistory.length
-    : (activeTab === 'texts' ? filteredPrompts.length : displayHistory.length);
+    ? filteredPrompts.length + displayHistory.length + filteredLinks.length + filteredIdentities.length
+    : (activeTab === 'texts' ? filteredPrompts.length
+      : activeTab === 'history' ? displayHistory.length
+      : activeTab === 'links' ? filteredLinks.length
+      : filteredIdentities.length);
 
   // Setup keyboard hook navigation
   const { selectedIndex, setSelectedIndex } = useKeyboard({
@@ -248,6 +388,8 @@ export default function App() {
     onEscape: handleKeyboardEscape,
     onCtrlN: () => {
       if (activeTab === 'texts') setView('add');
+      else if (activeTab === 'links') setView('add-link');
+      else if (activeTab === 'identity') setView('add-identity');
     },
     onCtrlComma: () => setView('settings'),
     onCtrlK: () => setView('command-palette'),
@@ -259,6 +401,16 @@ export default function App() {
     onCtrlH: () => {
       setView('list');
       setActiveTab('history');
+      setSearchFocused(true);
+    },
+    onCtrlL: () => {
+      setView('list');
+      setActiveTab('links');
+      setSearchFocused(true);
+    },
+    onCtrlI: () => {
+      setView('list');
+      setActiveTab('identity');
       setSearchFocused(true);
     },
     onCtrlF: () => {
@@ -282,11 +434,11 @@ export default function App() {
     },
     onCtrlShiftA: () => setView('about'),
     onCtrlQ: () => invoke('exit_app'),
-    isActive: view === 'list' && (activeTab === 'texts' ? !loading : !historyLoading),
+    isActive: view === 'list' && (activeTab === 'texts' ? !loading : activeTab === 'history' ? !historyLoading : activeTab === 'links' ? !linksLoading : !identitiesLoading),
   });
 
   // Tab switching
-  const handleTabChange = useCallback((tab: 'texts' | 'history') => {
+  const handleTabChange = useCallback((tab: 'texts' | 'history' | 'links' | 'identity') => {
     setActiveTab(tab);
     setSearchQuery('');
     setActiveTag(null);
@@ -294,8 +446,12 @@ export default function App() {
     setSelectedIndex(0);
     if (tab === 'history') {
       refreshHistory();
+    } else if (tab === 'links') {
+      refreshLinks();
+    } else if (tab === 'identity') {
+      refreshIdentities();
     }
-  }, [refreshHistory, setSelectedIndex]);
+  }, [refreshHistory, refreshLinks, refreshIdentities, setSelectedIndex]);
 
   // Commands for the command palette
   const commands = useMemo(() => [
@@ -316,6 +472,22 @@ export default function App() {
       enabled: true,
     },
     {
+      id: 'open-links',
+      label: 'Open Links',
+      category: 'Navigation',
+      shortcut: 'Ctrl+L',
+      action: () => { setView('list'); setActiveTab('links'); setSearchFocused(true); },
+      enabled: true,
+    },
+    {
+      id: 'open-identity',
+      label: 'Open Identity',
+      category: 'Navigation',
+      shortcut: 'Ctrl+I',
+      action: () => { setView('list'); setActiveTab('identity'); setSearchFocused(true); },
+      enabled: true,
+    },
+    {
       id: 'open-settings',
       label: 'Open Settings',
       category: 'Navigation',
@@ -325,11 +497,39 @@ export default function App() {
     },
     {
       id: 'add-prompt',
-      label: 'Add Text',
-      category: 'Navigation',
+      label: 'Add New Text',
+      category: 'Actions',
       shortcut: 'Ctrl+N',
       action: () => setView('add'),
       enabled: true,
+    },
+    {
+      id: 'add-link',
+      label: 'Add New Link',
+      category: 'Actions',
+      shortcut: 'Ctrl+N',
+      action: () => setView('add-link'),
+      enabled: true,
+    },
+    {
+      id: 'add-identity',
+      label: 'Add New Identity',
+      category: 'Actions',
+      shortcut: 'Ctrl+N',
+      action: () => setView('add-identity'),
+      enabled: true,
+    },
+    {
+      id: 'copy-identity-block',
+      label: 'Copy Identity Block',
+      category: 'Actions',
+      shortcut: 'Ctrl+B',
+      action: () => {
+        if (filteredIdentities[selectedIndex]) {
+          handleCopyIdentityBlock(filteredIdentities[selectedIndex]);
+        }
+      },
+      enabled: activeTab === 'identity' && filteredIdentities.length > 0,
     },
     {
       id: 'copy-selected',
@@ -339,9 +539,15 @@ export default function App() {
       action: () => {
         if (activeTab === 'texts' && filteredPrompts[selectedIndex]) {
           handleCopyPrompt(filteredPrompts[selectedIndex]);
+        } else if (activeTab === 'links' && filteredLinks[selectedIndex]) {
+          handleCopyLink(filteredLinks[selectedIndex]);
+        } else if (activeTab === 'identity' && filteredIdentities[selectedIndex]) {
+          handleCopyIdentityBlock(filteredIdentities[selectedIndex]);
         }
       },
-      enabled: activeTab === 'texts' && filteredPrompts.length > 0,
+      enabled: (activeTab === 'texts' && filteredPrompts.length > 0) ||
+               (activeTab === 'links' && filteredLinks.length > 0) ||
+               (activeTab === 'identity' && filteredIdentities.length > 0),
     },
     {
       id: 'paste-selected',
@@ -351,9 +557,15 @@ export default function App() {
       action: () => {
         if (activeTab === 'texts' && filteredPrompts[selectedIndex]) {
           handlePastePrompt(filteredPrompts[selectedIndex]);
+        } else if (activeTab === 'links' && filteredLinks[selectedIndex]) {
+          handlePasteLink(filteredLinks[selectedIndex]);
+        } else if (activeTab === 'identity' && filteredIdentities[selectedIndex]) {
+          handleCopyIdentityBlock(filteredIdentities[selectedIndex]);
         }
       },
-      enabled: activeTab === 'texts' && filteredPrompts.length > 0,
+      enabled: (activeTab === 'texts' && filteredPrompts.length > 0) ||
+               (activeTab === 'links' && filteredLinks.length > 0) ||
+               (activeTab === 'identity' && filteredIdentities.length > 0),
     },
     {
       id: 'clear-search',
@@ -387,7 +599,7 @@ export default function App() {
       action: () => { invoke('exit_app'); },
       enabled: true,
     },
-  ], [filteredPrompts, selectedIndex, handleCopyPrompt, handlePastePrompt, activeTab, searchQuery]);
+  ], [filteredPrompts, filteredLinks, filteredIdentities, selectedIndex, handleCopyPrompt, handlePastePrompt, handleCopyLink, handlePasteLink, handleCopyIdentityBlock, activeTab, searchQuery]);
 
   // Listen for Tauri events
   useEffect(() => {
@@ -437,7 +649,7 @@ export default function App() {
       unlistenQuickCapture.then((f) => f());
       unlistenHistoryUpdated.then((f) => f());
     };
-  }, [showToast, refreshPrompts, refreshHistory]);
+  }, [showToast, refreshPrompts, refreshHistory, refreshLinks, refreshIdentities]);
 
   const handleAddSave = async (title: string, text: string, tags: string[]) => {
     const success = await addPrompt(title, text, tags);
@@ -452,6 +664,48 @@ export default function App() {
       const success = await updatePrompt(editingPrompt.id, title, text, tags);
       if (success) {
         setEditingPrompt(null);
+        setView('list');
+      }
+      return success;
+    }
+    return false;
+  };
+
+  // Link save handlers
+  const handleAddLinkSave = async (link: Omit<SavedLink, 'id' | 'createdAt' | 'pinned'>) => {
+    const success = await addLink(link);
+    if (success) {
+      setView('list');
+    }
+    return success;
+  };
+
+  const handleEditLinkSave = async (link: Omit<SavedLink, 'id' | 'createdAt' | 'pinned'>) => {
+    if (editingLink) {
+      const success = await updateLink(editingLink.id, link);
+      if (success) {
+        setEditingLink(null);
+        setView('list');
+      }
+      return success;
+    }
+    return false;
+  };
+
+  // Identity save handlers
+  const handleAddIdentitySave = async (data: Omit<Identity, 'id' | 'createdAt' | 'pinned'>) => {
+    const success = await addIdentity(data);
+    if (success) {
+      setView('list');
+    }
+    return success;
+  };
+
+  const handleEditIdentitySave = async (data: Omit<Identity, 'id' | 'createdAt' | 'pinned'>) => {
+    if (editingIdentity) {
+      const success = await updateIdentity(editingIdentity.id, data);
+      if (success) {
+        setEditingIdentity(null);
         setView('list');
       }
       return success;
@@ -474,9 +728,13 @@ export default function App() {
   }
 
   const screenName: Record<string, string> = {
-    list: activeTab === 'history' ? 'History' : 'Texts',
+    list: activeTab === 'history' ? 'History' : activeTab === 'links' ? 'Links' : activeTab === 'identity' ? 'Identity' : 'Texts',
     add: 'Add Text',
     edit: 'Edit Text',
+    'add-link': 'Add Link',
+    'edit-link': 'Edit Link',
+    'add-identity': 'Add Identity',
+    'edit-identity': 'Edit Identity',
     settings: 'Settings',
     about: 'About',
     'command-palette': 'Commands',
@@ -523,6 +781,8 @@ export default function App() {
               <UnifiedSearchResults
                 prompts={filteredPrompts}
                 historyEntries={displayHistory}
+                links={filteredLinks}
+                identities={filteredIdentities}
                 searchQuery={searchQuery}
                 selectedIndex={selectedIndex}
                 onSelectPrompt={setSelectedIndex}
@@ -540,6 +800,22 @@ export default function App() {
                 }}
                 onCopyHistory={handleCopyHistory}
                 onPasteHistory={handlePasteHistory}
+                onCopyLink={handleCopyLink}
+                onPasteLink={handlePasteLink}
+                onEditLink={(link) => {
+                  setEditingLink(link);
+                  setView('edit-link');
+                }}
+                onDeleteLink={deleteLink}
+                onToggleLinkPin={toggleLinkPin}
+                onCopyIdentityField={handleCopyIdentityField}
+                onCopyIdentityBlock={handleCopyIdentityBlock}
+                onEditIdentity={(identity) => {
+                  setEditingIdentity(identity);
+                  setView('edit-identity');
+                }}
+                onDeleteIdentity={deleteIdentity}
+                onToggleIdentityPin={toggleIdentityPin}
               />
             )
           ) : activeTab === 'texts' ? (
@@ -567,6 +843,58 @@ export default function App() {
                   setSearchQuery('');
                 }}
                 onAddClick={() => setView('add')}
+              />
+            )
+          ) : activeTab === 'links' ? (
+            linksLoading ? (
+              <div role="status" className="flex-1 flex items-center justify-center">
+                <span className="text-xs text-muted">Loading links…</span>
+              </div>
+            ) : (
+              <LinkList
+                links={filteredLinks}
+                totalCount={links.length}
+                searchQuery={searchQuery}
+                selectedIndex={selectedIndex}
+                onSelectLink={setSelectedIndex}
+                onEditLink={(link) => {
+                  setEditingLink(link);
+                  setView('edit-link');
+                }}
+                onDeleteLink={deleteLink}
+                onCopyLink={handleCopyLink}
+                onPasteLink={handlePasteLink}
+                onTogglePin={toggleLinkPin}
+                onTagClick={(tag) => {
+                  setActiveTag(tag);
+                  setSearchQuery('');
+                }}
+                onAddClick={() => setView('add-link')}
+                categoryFilter={linkCategoryFilter}
+                onCategoryChange={setLinkCategoryFilter}
+              />
+            )
+          ) : activeTab === 'identity' ? (
+            identitiesLoading ? (
+              <div role="status" className="flex-1 flex items-center justify-center">
+                <span className="text-xs text-muted">Loading identities…</span>
+              </div>
+            ) : (
+              <IdentityList
+                identities={filteredIdentities}
+                totalCount={identities.length}
+                searchQuery={searchQuery}
+                selectedIndex={selectedIndex}
+                onSelectIdentity={setSelectedIndex}
+                onEditIdentity={(identity) => {
+                  setEditingIdentity(identity);
+                  setView('edit-identity');
+                }}
+                onDeleteIdentity={deleteIdentity}
+                onCopyField={handleCopyIdentityField}
+                onCopyBlock={handleCopyIdentityBlock}
+                onTogglePin={toggleIdentityPin}
+                onAddClick={() => setView('add-identity')}
               />
             )
           ) : (
@@ -606,6 +934,44 @@ export default function App() {
           onSave={handleEditSave}
           onCancel={() => {
             setEditingPrompt(null);
+            setView('list');
+          }}
+        />
+      )}
+
+      {view === 'add-link' && (
+        <AddEditLinkPanel
+          link={null}
+          onSave={handleAddLinkSave}
+          onCancel={() => setView('list')}
+        />
+      )}
+
+      {view === 'edit-link' && (
+        <AddEditLinkPanel
+          link={editingLink}
+          onSave={handleEditLinkSave}
+          onCancel={() => {
+            setEditingLink(null);
+            setView('list');
+          }}
+        />
+      )}
+
+      {view === 'add-identity' && (
+        <AddEditIdentityPanel
+          identity={null}
+          onSave={handleAddIdentitySave}
+          onCancel={() => setView('list')}
+        />
+      )}
+
+      {view === 'edit-identity' && (
+        <AddEditIdentityPanel
+          identity={editingIdentity}
+          onSave={handleEditIdentitySave}
+          onCancel={() => {
+            setEditingIdentity(null);
             setView('list');
           }}
         />

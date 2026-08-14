@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
-import { Plus, Search, Settings, Info, LogOut, Command } from 'lucide-react';
+import { Plus, Search, Settings, Info, LogOut, Command, Link2, User } from 'lucide-react';
 
 interface ActionItem {
   id: string;
@@ -13,8 +13,10 @@ interface ActionItem {
 
 const actions: ActionItem[] = [
   { id: 'add', label: 'Add Text', icon: <Plus size={14} />, shortcut: 'Ctrl+N', action: () => invoke('open_main_window', { view: 'add' }) },
+  { id: 'add-link', label: 'Add Link', icon: <Link2 size={14} />, action: () => invoke('open_main_window', { view: 'add-link' }) },
+  { id: 'add-identity', label: 'Add Identity', icon: <User size={14} />, action: () => invoke('open_main_window', { view: 'add-identity' }) },
   { id: 'palette', label: 'Command Palette', icon: <Command size={14} />, shortcut: 'Ctrl+K', action: () => invoke('open_main_window', { view: 'command-palette' }) },
-  { id: 'open', label: 'Open Texts', icon: <Search size={14} />, action: () => invoke('open_main_window', { view: 'list' }) },
+  { id: 'open', label: 'Open Parrot', icon: <Search size={14} />, action: () => invoke('open_main_window', { view: 'list' }) },
   { id: 'settings', label: 'Settings', icon: <Settings size={14} />, shortcut: 'Ctrl+,', action: () => invoke('open_main_window', { view: 'settings' }) },
 ];
 
