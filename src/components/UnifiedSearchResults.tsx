@@ -1,10 +1,12 @@
-import { Search } from 'lucide-react';
-import { Prompt, HistoryEntry } from '../types';
+import { Search, Globe, User } from 'lucide-react';
+import { Prompt, HistoryEntry, SavedLink, Identity } from '../types';
 import { PromptCard } from './PromptCard';
 
 interface UnifiedSearchResultsProps {
   prompts: Prompt[];
   historyEntries: HistoryEntry[];
+  links: SavedLink[];
+  identities: Identity[];
   searchQuery: string;
   selectedIndex: number;
   onSelectPrompt: (index: number) => void;
@@ -16,6 +18,16 @@ interface UnifiedSearchResultsProps {
   onTagClick: (tag: string) => void;
   onCopyHistory: (entry: HistoryEntry) => void;
   onPasteHistory: (entry: HistoryEntry) => void;
+  onCopyLink: (link: SavedLink) => void;
+  onPasteLink: (link: SavedLink) => void;
+  onEditLink: (link: SavedLink) => void;
+  onDeleteLink: (id: string) => void;
+  onToggleLinkPin: (id: string) => void;
+  onCopyIdentityField: (value: string) => void;
+  onCopyIdentityBlock: (identity: Identity) => void;
+  onEditIdentity: (identity: Identity) => void;
+  onDeleteIdentity: (id: string) => void;
+  onToggleIdentityPin: (id: string) => void;
 }
 
 function formatRelativeTime(isoString: string): string {
@@ -37,6 +49,8 @@ function formatRelativeTime(isoString: string): string {
 export function UnifiedSearchResults({
   prompts,
   historyEntries,
+  links,
+  identities,
   searchQuery,
   selectedIndex,
   onSelectPrompt,
@@ -48,15 +62,20 @@ export function UnifiedSearchResults({
   onTagClick,
   onCopyHistory,
   onPasteHistory,
+  onCopyLink,
+  onPasteLink,
+  onCopyIdentityBlock,
 }: UnifiedSearchResultsProps) {
-  const totalResults = prompts.length + historyEntries.length;
+  const totalResults = prompts.length + historyEntries.length + links.length + identities.length;
   const promptCount = prompts.length;
+  const historyCount = historyEntries.length;
+  const linkCount = links.length;
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       <div className="flex items-center gap-1.5 px-1 mb-2 text-[10px] text-muted shrink-0">
         <Search size={10} aria-hidden="true" />
-        <span>{totalResults} result{totalResults !== 1 ? 's' : ''} — {prompts.length} text{prompts.length !== 1 ? 's' : ''}, {historyEntries.length} histor{historyEntries.length !== 1 ? 'ies' : 'y'}</span>
+        <span>{totalResults} result{totalResults !== 1 ? 's' : ''}</span>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-3">
@@ -133,17 +152,120 @@ export function UnifiedSearchResults({
                     }`}>
                       <button
                         onClick={(e) => { e.stopPropagation(); onCopyHistory(entry); }}
-                        title="Copy (Shift+Enter)"
+                        aria-label="Copy (Shift+Enter)"
                         className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all"
                       >
                         <span className="text-[10px]">Copy</span>
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); onPasteHistory(entry); }}
-                        title="Paste (Enter)"
+                        aria-label="Paste (Enter)"
                         className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all"
                       >
                         <span className="text-[10px]">Paste</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Links section */}
+        {links.length > 0 && (
+          <div>
+            <div className="flex items-center gap-1.5 px-1 mb-1">
+              <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">Links</span>
+            </div>
+            <div role="listbox" aria-label="Matching links" className="space-y-1">
+              {links.map((link, idx) => {
+                const globalIdx = promptCount + historyCount + idx;
+                return (
+                  <div
+                    key={link.id}
+                    role="option"
+                    aria-selected={globalIdx === selectedIndex}
+                    onClick={() => onSelectPrompt(globalIdx)}
+                    className={`group w-full flex flex-col p-3 rounded-md border text-left cursor-pointer transition-[border-color,background-color] duration-100 ${
+                      globalIdx === selectedIndex
+                        ? 'border-accent bg-accent-dim/15'
+                        : 'border-transparent bg-surface hover:border-border'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Globe size={12} className="text-muted shrink-0" />
+                      <span className="text-xs font-medium text-primary truncate">{link.title}</span>
+                    </div>
+                    <p className="text-[10px] text-muted truncate mt-0.5">{link.url}</p>
+                    <div className={`flex items-center justify-end gap-1.5 w-full overflow-hidden transition-[height,opacity,margin,padding] duration-100 ${
+                      globalIdx === selectedIndex
+                        ? 'h-6 opacity-100 mt-2.5 pt-0.5'
+                        : 'h-0 opacity-0 group-hover:h-6 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-0.5'
+                    }`}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onCopyLink(link); }}
+                        aria-label="Copy URL"
+                        className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all"
+                      >
+                        <span className="text-[10px]">Copy</span>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onPasteLink(link); }}
+                        aria-label="Paste URL"
+                        className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all"
+                      >
+                        <span className="text-[10px]">Paste</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Identities section */}
+        {identities.length > 0 && (
+          <div>
+            <div className="flex items-center gap-1.5 px-1 mb-1">
+              <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">Identity</span>
+            </div>
+            <div role="listbox" aria-label="Matching identities" className="space-y-1">
+              {identities.map((identity, idx) => {
+                const globalIdx = promptCount + historyCount + linkCount + idx;
+                return (
+                  <div
+                    key={identity.id}
+                    role="option"
+                    aria-selected={globalIdx === selectedIndex}
+                    onClick={() => onSelectPrompt(globalIdx)}
+                    className={`group w-full flex flex-col p-3 rounded-md border text-left cursor-pointer transition-[border-color,background-color] duration-100 ${
+                      globalIdx === selectedIndex
+                        ? 'border-accent bg-accent-dim/15'
+                        : 'border-transparent bg-surface hover:border-border'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <User size={12} className="text-muted shrink-0" />
+                      <span className="text-xs font-medium text-primary truncate">{identity.name}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {identity.fields.slice(0, 3).map((f) => (
+                        <span key={f.id} className="text-[9px] text-muted">{f.label}: {f.value || '—'}</span>
+                      ))}
+                    </div>
+                    <div className={`flex items-center justify-end gap-1.5 w-full overflow-hidden transition-[height,opacity,margin,padding] duration-100 ${
+                      globalIdx === selectedIndex
+                        ? 'h-6 opacity-100 mt-2.5 pt-0.5'
+                        : 'h-0 opacity-0 group-hover:h-6 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-0.5'
+                    }`}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onCopyIdentityBlock(identity); }}
+                        aria-label="Copy All Fields"
+                        className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all"
+                      >
+                        <span className="text-[10px]">Copy Block</span>
                       </button>
                     </div>
                   </div>

@@ -3,6 +3,7 @@ import { ArrowLeft, Keyboard, Power, Zap, Clock, Palette } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { Settings } from '../types';
+import { CustomSelect } from './CustomSelect';
 
 interface SettingsPanelProps {
   onBack: () => void;
@@ -264,43 +265,37 @@ export function SettingsPanel({ onBack, showToast, onThemeChange }: SettingsPane
           </div>
 
           <div className="flex flex-col gap-1.5 p-3 rounded-md border border-border bg-surface">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <span className="text-xs text-primary">Text history</span>
-              <select
+              <CustomSelect
                 value={textRetention}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
+                options={RETENTION_OPTIONS.map((d) => ({ value: d, label: `${d} days` }))}
+                onChange={(val) => {
+                  const v = Number(val);
                   setTextRetention(v);
                   persist({ textHistoryRetentionDays: v });
                 }}
-                className="h-7 px-2 text-xs rounded-md bg-surface-hover border border-border text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent cursor-pointer"
-                style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-primary)' }}
-              >
-                {RETENTION_OPTIONS.map((d) => (
-                  <option key={d} value={d}>{d} days</option>
-                ))}
-              </select>
+                aria-label="Text history retention days"
+                className="w-28 h-7"
+              />
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col">
                 <span className="text-xs text-primary">Image history</span>
                 <span className="text-[9px] text-muted">Images use more disk space</span>
               </div>
-              <select
+              <CustomSelect
                 value={imageRetention}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
+                options={RETENTION_OPTIONS.map((d) => ({ value: d, label: `${d} days` }))}
+                onChange={(val) => {
+                  const v = Number(val);
                   setImageRetention(v);
                   persist({ imageHistoryRetentionDays: v });
                 }}
-                className="h-7 px-2 text-xs rounded-md bg-surface-hover border border-border text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent cursor-pointer"
-                style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-primary)' }}
-              >
-                {RETENTION_OPTIONS.map((d) => (
-                  <option key={d} value={d}>{d} days</option>
-                ))}
-              </select>
+                aria-label="Image history retention days"
+                className="w-28 h-7"
+              />
             </div>
 
             {imageRetention > 10 && (

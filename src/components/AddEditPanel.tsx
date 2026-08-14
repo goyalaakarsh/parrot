@@ -82,6 +82,7 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
 
   return (
     <form 
+      noValidate
       onSubmit={handleSubmit} 
       onKeyDown={handleKeyDown}
       className="flex-1 flex flex-col justify-between p-1 select-text min-h-0"
@@ -103,7 +104,7 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
         </div>
 
         {error && (
-          <div role="alert" className="px-3 py-2 rounded bg-danger/10 border border-danger/20 text-danger text-xs">
+          <div role="alert" className="px-3 py-2 rounded bg-danger/10 border border-danger/20 text-danger text-xs font-medium animate-slide-up">
             {error}
           </div>
         )}
@@ -119,7 +120,6 @@ export function AddEditPanel({ prompt, onSave, onCancel }: AddEditPanelProps) {
             placeholder="Type or paste your text template here…"
             aria-label="Text content"
             className="px-3 py-2 text-[13px] rounded-md bg-surface border border-border text-primary placeholder-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-[border-color,box-shadow] resize-none min-h-[90px]"
-            required
             autoFocus
           />
         </div>

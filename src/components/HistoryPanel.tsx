@@ -274,8 +274,7 @@ export function HistoryPanel({
                   }`}>
                     <button
                       onClick={(e) => { e.stopPropagation(); onCopy(entry); }}
-                      title="Copy (Shift+Enter)"
-                      aria-label="Copy"
+                      aria-label="Copy (Shift+Enter)"
                       className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1"
                     >
                       <Clipboard size={13} aria-hidden="true" />
@@ -283,8 +282,7 @@ export function HistoryPanel({
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); onPaste(entry); }}
-                      title="Paste (Enter)"
-                      aria-label="Paste"
+                      aria-label="Paste (Enter)"
                       className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1"
                     >
                       <CornerDownLeft size={13} aria-hidden="true" />
@@ -293,8 +291,7 @@ export function HistoryPanel({
                     {!isImage && (
                       <button
                         onClick={(e) => { e.stopPropagation(); onPromote(entry); }}
-                        title="Save to My Texts (Ctrl+S)"
-                        aria-label="Save to My Texts"
+                        aria-label="Save to My Texts (Ctrl+S)"
                         className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1"
                       >
                         <Save size={13} aria-hidden="true" />
@@ -307,8 +304,7 @@ export function HistoryPanel({
                         e.stopPropagation();
                         setDeletingId(entry.id);
                       }}
-                      title="Delete (Delete)"
-                      aria-label="Delete"
+                      aria-label="Delete (Delete)"
                       className="p-1 rounded text-muted hover:text-danger hover:bg-surface-hover transition-all flex items-center gap-1"
                     >
                       <Trash2 size={13} aria-hidden="true" />

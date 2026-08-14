@@ -183,12 +183,11 @@ export function PromptCard({
                 e.stopPropagation();
                 onTogglePin();
               }}
-              title={prompt.pinned ? 'Unpin' : 'Pin to top'}
               aria-label={prompt.pinned ? 'Unpin' : 'Pin to top'}
               className={`shrink-0 mt-0.5 p-0.5 rounded transition-all focus:outline-none focus:ring-1 focus:ring-accent ${
                 prompt.pinned
                   ? 'opacity-100 text-yellow-500'
-                  : 'opacity-0 group-hover:opacity-100 text-muted hover:text-yellow-500'
+                  : 'opacity-40 hover:opacity-100 text-muted hover:text-yellow-500'
               }`}
             >
               <Star
@@ -234,7 +233,6 @@ export function PromptCard({
                   e.stopPropagation();
                   onCopy();
                 }}
-                title="Copy (Shift+Enter)"
                 aria-label="Copy (Shift+Enter)"
                 tabIndex={isSelected ? 0 : -1}
                 className="shrink-0 p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
@@ -247,7 +245,6 @@ export function PromptCard({
                   e.stopPropagation();
                   onPaste();
                 }}
-                title="Auto-insert (Enter)"
                 aria-label="Paste (Enter)"
                 tabIndex={isSelected ? 0 : -1}
                 className="shrink-0 p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
@@ -260,7 +257,6 @@ export function PromptCard({
                   e.stopPropagation();
                   onEdit();
                 }}
-                title="Edit (Ctrl+E)"
                 aria-label="Edit (Ctrl+E)"
                 tabIndex={isSelected ? 0 : -1}
                 className="shrink-0 p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"
@@ -270,7 +266,6 @@ export function PromptCard({
               </button>
               <button
                 onClick={handleDeleteClick}
-                title="Delete (Delete)"
                 aria-label="Delete (Delete)"
                 tabIndex={isSelected ? 0 : -1}
                 className="shrink-0 p-1 rounded text-muted hover:text-danger hover:bg-surface-hover transition-all flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-accent"

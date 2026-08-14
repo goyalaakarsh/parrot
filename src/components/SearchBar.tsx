@@ -7,8 +7,8 @@ interface SearchBarProps {
   onOpenSettings: () => void;
   onOpenPalette: () => void;
   isFocused: boolean;
-  activeTab: 'texts' | 'history';
-  onTabChange: (tab: 'texts' | 'history') => void;
+  activeTab: 'texts' | 'history' | 'links' | 'identity';
+  onTabChange: (tab: 'texts' | 'history' | 'links' | 'identity') => void;
   activeTag: string | null;
   onClearTag: () => void;
 }
@@ -66,8 +66,7 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
         </div>
         <button
           onClick={onOpenPalette}
-          title="Command Palette (Ctrl+K)"
-          aria-label="Command Palette"
+          aria-label="Command Palette (Ctrl+K)"
           className="shrink-0 flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-[border-color,color] duration-100"
         >
           <Command size={15} aria-hidden="true" />
@@ -75,8 +74,7 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
         </button>
         <button
           onClick={onOpenSettings}
-          title="Settings (Ctrl+,)"
-          aria-label="Settings"
+          aria-label="Settings (Ctrl+,)"
           className="shrink-0 flex items-center gap-1.5 px-2.5 h-9 rounded-lg bg-surface border border-border text-muted hover:text-accent hover:border-accent transition-[border-color,color] duration-100"
         >
           <Settings size={15} aria-hidden="true" />
@@ -85,7 +83,7 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
       </div>
 
       {/* Tabs */}
-      <div role="tablist" className="flex items-center gap-1 p-1 bg-surface rounded-lg">
+      <div role="tablist" className="flex items-center gap-0.5 p-1 bg-surface rounded-lg">
         <button
           role="tab"
           aria-selected={activeTab === 'texts'}
@@ -94,14 +92,14 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
             onTabChange('texts');
             inputRef.current?.focus();
           }}
-          className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 rounded-md transition-all duration-150 ${
+          className={`flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold py-1.5 rounded-md transition-all duration-150 ${
             activeTab === 'texts'
               ? 'bg-accent text-background shadow-sm'
               : 'text-muted hover:text-primary hover:bg-surface-hover'
           }`}
         >
-          My Texts
-          <kbd className={`text-[9px] px-1 py-0.5 rounded font-sans font-medium leading-none ${
+          Texts
+          <kbd className={`text-[8px] px-1 py-0.5 rounded font-sans font-medium leading-none ${
             activeTab === 'texts'
               ? 'bg-black/15 text-background/80 border-transparent'
               : 'bg-surface-hover border border-border text-muted'
@@ -115,18 +113,60 @@ export function SearchBar({ value, onChange, onOpenSettings, onOpenPalette, isFo
             onTabChange('history');
             inputRef.current?.focus();
           }}
-          className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 rounded-md transition-all duration-150 ${
+          className={`flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold py-1.5 rounded-md transition-all duration-150 ${
             activeTab === 'history'
               ? 'bg-accent text-background shadow-sm'
               : 'text-muted hover:text-primary hover:bg-surface-hover'
           }`}
         >
           History
-          <kbd className={`text-[9px] px-1 py-0.5 rounded font-sans font-medium leading-none ${
+          <kbd className={`text-[8px] px-1 py-0.5 rounded font-sans font-medium leading-none ${
             activeTab === 'history'
               ? 'bg-black/15 text-background/80 border-transparent'
               : 'bg-surface-hover border border-border text-muted'
           }`}>Ctrl+H</kbd>
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === 'links'}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
+            onTabChange('links');
+            inputRef.current?.focus();
+          }}
+          className={`flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold py-1.5 rounded-md transition-all duration-150 ${
+            activeTab === 'links'
+              ? 'bg-accent text-background shadow-sm'
+              : 'text-muted hover:text-primary hover:bg-surface-hover'
+          }`}
+        >
+          Links
+          <kbd className={`text-[8px] px-1 py-0.5 rounded font-sans font-medium leading-none ${
+            activeTab === 'links'
+              ? 'bg-black/15 text-background/80 border-transparent'
+              : 'bg-surface-hover border border-border text-muted'
+          }`}>Ctrl+L</kbd>
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === 'identity'}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
+            onTabChange('identity');
+            inputRef.current?.focus();
+          }}
+          className={`flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold py-1.5 rounded-md transition-all duration-150 ${
+            activeTab === 'identity'
+              ? 'bg-accent text-background shadow-sm'
+              : 'text-muted hover:text-primary hover:bg-surface-hover'
+          }`}
+        >
+          ID
+          <kbd className={`text-[8px] px-1 py-0.5 rounded font-sans font-medium leading-none ${
+            activeTab === 'identity'
+              ? 'bg-black/15 text-background/80 border-transparent'
+              : 'bg-surface-hover border border-border text-muted'
+          }`}>Ctrl+I</kbd>
         </button>
       </div>
 
