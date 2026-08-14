@@ -19,6 +19,37 @@ export interface HistoryEntry {
   imageHeight?: number;
 }
 
+export interface SavedLink {
+  id: string;
+  title: string;
+  url: string;
+  description: string;
+  faviconUrl: string | null;
+  category: string;
+  tags: string[];
+  createdAt: string;
+  lastUsedAt?: string;
+  pinned: boolean;
+  pinnedAt?: string;
+}
+
+export interface IdentityField {
+  id: string;
+  label: string;
+  value: string;
+  type: 'text' | 'email' | 'phone' | 'address';
+}
+
+export interface Identity {
+  id: string;
+  name: string;
+  fields: IdentityField[];
+  createdAt: string;
+  updatedAt?: string;
+  pinned: boolean;
+  pinnedAt?: string;
+}
+
 export interface Settings {
   globalShortcut: string;
   quickCaptureShortcut: string;

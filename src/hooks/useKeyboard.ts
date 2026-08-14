@@ -10,6 +10,8 @@ interface UseKeyboardProps {
   onCtrlK?: () => void;
   onCtrlT?: () => void;
   onCtrlH?: () => void;
+  onCtrlL?: () => void;
+  onCtrlI?: () => void;
   onCtrlF?: () => void;
   onCtrl1?: () => void;
   onCtrl2?: () => void;
@@ -20,7 +22,7 @@ interface UseKeyboardProps {
   isActive: boolean;
 }
 
-export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlT, onCtrlH, onCtrlF, onCtrl1, onCtrl2, onCtrl3, onCtrlS, onCtrlShiftA, onCtrlQ, isActive }: UseKeyboardProps) {
+export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlT, onCtrlH, onCtrlL, onCtrlI, onCtrlF, onCtrl1, onCtrl2, onCtrl3, onCtrlS, onCtrlShiftA, onCtrlQ, isActive }: UseKeyboardProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   // Reset selected index if items count changes
@@ -82,6 +84,20 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
         return;
       }
 
+      // Allow Ctrl+L from anywhere
+      if (e.key === 'l' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        e.preventDefault();
+        onCtrlL?.();
+        return;
+      }
+
+      // Allow Ctrl+I from anywhere
+      if (e.key === 'i' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        e.preventDefault();
+        onCtrlI?.();
+        return;
+      }
+
       // Allow Ctrl+Shift+A from anywhere
       if (e.key === 'A' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
         e.preventDefault();
@@ -135,7 +151,7 @@ export function useKeyboard({ itemsCount, onEnter, onShiftEnter, onEscape, onCtr
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlT, onCtrlH, onCtrlF, onCtrl1, onCtrl2, onCtrl3, onCtrlS, onCtrlShiftA, onCtrlQ, selectedIndex, isActive]);
+  }, [itemsCount, onEnter, onShiftEnter, onEscape, onCtrlN, onCtrlComma, onCtrlK, onCtrlT, onCtrlH, onCtrlL, onCtrlI, onCtrlF, onCtrl1, onCtrl2, onCtrl3, onCtrlS, onCtrlShiftA, onCtrlQ, selectedIndex, isActive]);
 
   return { selectedIndex, setSelectedIndex };
 }

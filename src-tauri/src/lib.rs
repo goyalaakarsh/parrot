@@ -220,6 +220,10 @@ pub fn run() {
             commands::paste_image,
             commands::copy_image,
             commands::get_image_path,
+            commands::get_links,
+            commands::save_links,
+            commands::get_identities,
+            commands::save_identities,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

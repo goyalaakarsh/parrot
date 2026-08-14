@@ -233,6 +233,94 @@ pub fn save_history(app: &tauri::AppHandle, entries: &[HistoryEntry]) -> Result<
     Ok(())
 }
 
+// --- Links ---
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct SavedLink {
+    pub id: String,
+    pub title: String,
+    pub url: String,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub favicon_url: Option<String>,
+    #[serde(default)]
+    pub category: String,
+    #[serde(default)]
+    pub tags: Vec<String>,
+    pub created_at: String,
+    #[serde(default)]
+    pub last_used_at: Option<String>,
+    #[serde(default)]
+    pub pinned: bool,
+    #[serde(default)]
+    pub pinned_at: Option<String>,
+}
+
+pub fn load_links(app: &tauri::AppHandle) -> Result<Vec<SavedLink>, String> {
+    let path = get_storage_path(app, "links.json")?;
+    if !path.exists() {
+        return Ok(Vec::new());
+    }
+    let content = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let links: Vec<SavedLink> = serde_json::from_str(&content).map_err(|e| e.to_string())?;
+    Ok(links)
+}
+
+pub fn save_links(app: &tauri::AppHandle, links: &[SavedLink]) -> Result<(), String> {
+    let path = get_storage_path(app, "links.json")?;
+    let content = serde_json::to_string_pretty(links).map_err(|e| e.to_string())?;
+    fs::write(&path, content).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+// --- Identities ---
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct IdentityField {
+    pub id: String,
+    pub label: String,
+    pub value: String,
+    #[serde(default = "default_field_type")]
+    pub field_type: String,
+}
+
+fn default_field_type() -> String { "text".to_string() }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Identity {
+    pub id: String,
+    pub name: String,
+    pub fields: Vec<IdentityField>,
+    pub created_at: String,
+    #[serde(default)]
+    pub updated_at: Option<String>,
+    #[serde(default)]
+    pub pinned: bool,
+    #[serde(default)]
+    pub pinned_at: Option<String>,
+}
+
+pub fn load_identities(app: &tauri::AppHandle) -> Result<Vec<Identity>, String> {
+    let path = get_storage_path(app, "identities.json")?;
+    if !path.exists() {
+        return Ok(Vec::new());
+    }
+    let content = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let identities: Vec<Identity> = serde_json::from_str(&content).map_err(|e| e.to_string())?;
+    Ok(identities)
+}
+
+pub fn save_identities(app: &tauri::AppHandle, identities: &[Identity]) -> Result<(), String> {
+    let path = get_storage_path(app, "identities.json")?;
+    let content = serde_json::to_string_pretty(identities).map_err(|e| e.to_string())?;
+    fs::write(&path, content).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 pub fn save_image_to_disk(app: &tauri::AppHandle, entry_id: &str, data: &[u8], width: u32, height: u32) -> Result<String, String> {
     let app_data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     let images_dir = app_data_dir.join("images");

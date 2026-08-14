@@ -1,6 +1,6 @@
 use tauri::{AppHandle, Manager, Emitter};
 
-use crate::storage::{self, Prompt, Settings, HistoryEntry};
+use crate::storage::{self, Prompt, Settings, HistoryEntry, SavedLink, Identity};
 use crate::paste::{get_current_foreground_hwnd, restore_focus_and_paste, is_valid_user_window};
 use crate::clipboard_monitor::{self, HistoryState};
 use std::sync::Mutex;
@@ -214,6 +214,30 @@ pub fn promote_to_prompt(app: AppHandle, entry_id: String) -> Result<(), String>
     clipboard_monitor::flush_history(&app);
 
     Ok(())
+}
+
+// --- Links Commands ---
+
+#[tauri::command]
+pub fn get_links(app: AppHandle) -> Result<Vec<SavedLink>, String> {
+    storage::load_links(&app)
+}
+
+#[tauri::command]
+pub fn save_links(app: AppHandle, links: Vec<SavedLink>) -> Result<(), String> {
+    storage::save_links(&app, &links)
+}
+
+// --- Identity Commands ---
+
+#[tauri::command]
+pub fn get_identities(app: AppHandle) -> Result<Vec<Identity>, String> {
+    storage::load_identities(&app)
+}
+
+#[tauri::command]
+pub fn save_identities(app: AppHandle, identities: Vec<Identity>) -> Result<(), String> {
+    storage::save_identities(&app, &identities)
 }
 
 // --- Image Commands ---
