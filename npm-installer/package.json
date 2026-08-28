@@ -1,7 +1,6 @@
 {
   "name": "install-parrot",
-  "version": "1.0.0",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Auto-installer for Parrot Desktop",
   "main": "index.js",
   "bin": {

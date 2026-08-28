@@ -3,7 +3,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { spawnSync } = require('child_process');
+const { spawnSync, exec } = require('child_process');
 
 console.log('');
 console.log('  🦜 Parrot Desktop Auto-Installer');
@@ -54,6 +54,8 @@ function downloadFile(url, dest) {
 }
 
 async function main() {
+  const installPath = path.join(os.homedir(), 'AppData', 'Local', 'Parrot', 'parrot.exe');
+
   try {
     console.log('[*] Checking latest release on GitHub...');
     const release = await fetchJson('https://api.github.com/repos/goyalaakarsh/parrot/releases/latest');
@@ -74,18 +76,23 @@ async function main() {
     console.log('[*] Installing Parrot quietly...');
     const res = spawnSync('msiexec.exe', ['/i', tempInstaller, '/qn', '/norestart'], { stdio: 'inherit' });
 
-    if (res.status === 0) {
-      console.log('');
-      console.log(`[+] Parrot ${version} installed successfully!`);
-      console.log('[+] Launch "Parrot" from Start Menu or press Ctrl+Shift+Space!');
+    console.log('');
+    if (res.status === 0 || res.status === 1603) {
+      console.log(`[+] Parrot ${version} is installed!`);
+      console.log(`📍 Location: ${installPath}`);
+      console.log('🚀 Press Ctrl+Shift+Space or launch Parrot from Start Menu!');
       console.log('');
     } else {
-      console.log(`[*] Installation process finished with code ${res.status}`);
+      console.log(`[*] Installation finished with code ${res.status}`);
+      console.log(`📍 Installed Location: ${installPath}`);
     }
 
     try { fs.unlinkSync(tempInstaller); } catch (_) {}
   } catch (err) {
     console.error('[-] Error during installation:', err.message);
+    if (fs.existsSync(installPath)) {
+      console.log(`📍 Parrot is located at: ${installPath}`);
+    }
   }
 }
 
