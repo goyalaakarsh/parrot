@@ -24,7 +24,9 @@ interface UnifiedSearchResultsProps {
   onDeleteLink: (id: string) => void;
   onToggleLinkPin: (id: string) => void;
   onCopyIdentityField: (value: string) => void;
+  onPasteIdentityField: (value: string) => void;
   onCopyIdentityBlock: (identity: Identity) => void;
+  onPasteIdentityBlock: (identity: Identity) => void;
   onEditIdentity: (identity: Identity) => void;
   onDeleteIdentity: (id: string) => void;
   onToggleIdentityPin: (id: string) => void;
@@ -64,7 +66,10 @@ export function UnifiedSearchResults({
   onPasteHistory,
   onCopyLink,
   onPasteLink,
+  onCopyIdentityField,
+  onPasteIdentityField,
   onCopyIdentityBlock,
+  onPasteIdentityBlock,
 }: UnifiedSearchResultsProps) {
   const totalResults = prompts.length + historyEntries.length + links.length + identities.length;
   const promptCount = prompts.length;
@@ -120,31 +125,29 @@ export function UnifiedSearchResults({
                     key={entry.id}
                     role="option"
                     aria-selected={globalIdx === selectedIndex}
-                    onClick={() => onSelectPrompt(globalIdx)}
+                    onClick={() => {
+                      onSelectPrompt(globalIdx);
+                      onPasteHistory(entry);
+                    }}
                     className={`group w-full flex flex-col p-3 rounded-md border text-left cursor-pointer transition-[border-color,background-color] duration-100 ${
                       globalIdx === selectedIndex
                         ? 'border-accent bg-accent-dim/15'
                         : 'border-transparent bg-surface hover:border-border'
                     }`}
                   >
-                    {!isImage && (
-                      <p className={`text-xs text-muted break-words whitespace-pre-line text-left ${
-                        globalIdx === selectedIndex ? 'line-clamp-5' : 'line-clamp-3'
-                      }`}>
-                        {entry.text.length > 150 ? `${entry.text.substring(0, 150)}…` : entry.text}
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-xs font-medium text-primary line-clamp-2">
+                        {isImage ? '[Image Clipboard Item]' : (entry.text || 'Empty entry')}
                       </p>
-                    )}
-                    {isImage && (
-                      <p className="text-xs text-muted italic">[Image]</p>
-                    )}
-
-                    <div className="flex items-center gap-2 mt-2 text-[10px] text-muted">
-                      {entry.sourceApp && (
-                        <span className="px-1 py-0.5 rounded bg-surface-hover border border-border">{entry.sourceApp}</span>
-                      )}
-                      <span>{formatRelativeTime(entry.capturedAt)}</span>
+                      <div className="flex items-center gap-1 shrink-0 text-[10px] text-muted">
+                        {entry.sourceApp && (
+                          <span className="px-1.5 py-0.5 rounded bg-surface-hover border border-border">
+                            {entry.sourceApp}
+                          </span>
+                        )}
+                        <span>{formatRelativeTime(entry.capturedAt)}</span>
+                      </div>
                     </div>
-
                     <div className={`flex items-center justify-end gap-1.5 w-full overflow-hidden transition-[height,opacity,margin,padding] duration-100 ${
                       globalIdx === selectedIndex
                         ? 'h-6 opacity-100 mt-2.5 pt-0.5'
@@ -186,7 +189,10 @@ export function UnifiedSearchResults({
                     key={link.id}
                     role="option"
                     aria-selected={globalIdx === selectedIndex}
-                    onClick={() => onSelectPrompt(globalIdx)}
+                    onClick={() => {
+                      onSelectPrompt(globalIdx);
+                      onPasteLink(link);
+                    }}
                     className={`group w-full flex flex-col p-3 rounded-md border text-left cursor-pointer transition-[border-color,background-color] duration-100 ${
                       globalIdx === selectedIndex
                         ? 'border-accent bg-accent-dim/15'
@@ -239,7 +245,10 @@ export function UnifiedSearchResults({
                     key={identity.id}
                     role="option"
                     aria-selected={globalIdx === selectedIndex}
-                    onClick={() => onSelectPrompt(globalIdx)}
+                    onClick={() => {
+                      onSelectPrompt(globalIdx);
+                      onPasteIdentityBlock(identity);
+                    }}
                     className={`group w-full flex flex-col p-3 rounded-md border text-left cursor-pointer transition-[border-color,background-color] duration-100 ${
                       globalIdx === selectedIndex
                         ? 'border-accent bg-accent-dim/15'
@@ -252,7 +261,20 @@ export function UnifiedSearchResults({
                     </div>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {identity.fields.slice(0, 3).map((f) => (
-                        <span key={f.id} className="text-[9px] text-muted">{f.label}: {f.value || '—'}</span>
+                        <button
+                          key={f.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (e.shiftKey) {
+                              onCopyIdentityField(f.value);
+                            } else {
+                              onPasteIdentityField(f.value);
+                            }
+                          }}
+                          className="text-[9px] text-muted hover:text-primary hover:bg-surface-hover px-1 rounded transition-colors"
+                        >
+                          {f.label}: {f.value || '—'}
+                        </button>
                       ))}
                     </div>
                     <div className={`flex items-center justify-end gap-1.5 w-full overflow-hidden transition-[height,opacity,margin,padding] duration-100 ${
@@ -266,6 +288,13 @@ export function UnifiedSearchResults({
                         className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all"
                       >
                         <span className="text-[10px]">Copy Block</span>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onPasteIdentityBlock(identity); }}
+                        aria-label="Paste All Fields"
+                        className="p-1 rounded text-muted hover:text-accent hover:bg-surface-hover transition-all"
+                      >
+                        <span className="text-[10px]">Paste Block</span>
                       </button>
                     </div>
                   </div>

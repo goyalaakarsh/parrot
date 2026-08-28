@@ -19,6 +19,8 @@ import { LinkList } from './components/LinkList';
 import { AddEditLinkPanel } from './components/AddEditLinkPanel';
 import { IdentityList } from './components/IdentityList';
 import { AddEditIdentityPanel } from './components/AddEditIdentityPanel';
+import { VariableFillModal } from './components/VariableFillModal';
+import { extractVariables, evaluateTemplate } from './utils/variables';
 
 import { usePrompts } from './hooks/usePrompts';
 import { useSearch } from './hooks/useSearch';
@@ -146,11 +148,18 @@ export default function App() {
     }
   }, [view]);
 
+  // Variable modal state
+  const [variableModalPrompt, setVariableModalPrompt] = useState<{
+    prompt: Prompt;
+    customVars: string[];
+    isPaste: boolean;
+  } | null>(null);
+
   // Copy Only Flow
-  const handleCopyPrompt = async (prompt: Prompt) => {
+  const executeCopyText = async (text: string, promptId: string) => {
     try {
-      await writeText(prompt.text);
-      markPromptUsed(prompt.id);
+      await writeText(text);
+      markPromptUsed(promptId);
       showToast('Copied!', 'success');
 
       setTimeout(async () => {
@@ -164,17 +173,50 @@ export default function App() {
   };
 
   // Auto-Paste Flow
-  const handlePastePrompt = async (prompt: Prompt) => {
+  const executePasteText = async (text: string, promptId: string) => {
     try {
       const hwnd = await invoke<number>('get_foreground_hwnd');
-      await writeText(prompt.text);
-      markPromptUsed(prompt.id);
+      await writeText(text);
+      markPromptUsed(promptId);
       const win = getCurrentWindow();
       await win.hide();
       await invoke('paste_to_previous_window', { hwnd });
     } catch (err: any) {
       console.error('Auto-paste failed:', err);
       showToast('Auto-paste failed: ' + err.toString(), 'error');
+    }
+  };
+
+  const handleCopyPrompt = async (prompt: Prompt) => {
+    const { customVars } = extractVariables(prompt.text);
+    if (customVars.length > 0) {
+      setVariableModalPrompt({ prompt, customVars, isPaste: false });
+      return;
+    }
+    const evaluated = await evaluateTemplate(prompt.text);
+    await executeCopyText(evaluated, prompt.id);
+  };
+
+  const handlePastePrompt = async (prompt: Prompt) => {
+    const { customVars } = extractVariables(prompt.text);
+    if (customVars.length > 0) {
+      setVariableModalPrompt({ prompt, customVars, isPaste: true });
+      return;
+    }
+    const evaluated = await evaluateTemplate(prompt.text);
+    await executePasteText(evaluated, prompt.id);
+  };
+
+  const handleConfirmVariableFill = async (customValues: Record<string, string>) => {
+    if (!variableModalPrompt) return;
+    const { prompt, isPaste } = variableModalPrompt;
+    const evaluated = await evaluateTemplate(prompt.text, customValues);
+    setVariableModalPrompt(null);
+
+    if (isPaste) {
+      await executePasteText(evaluated, prompt.id);
+    } else {
+      await executeCopyText(evaluated, prompt.id);
     }
   };
 
@@ -267,6 +309,7 @@ export default function App() {
   };
 
   // Identity Copy Field Flow
+  // Identity Copy Field Flow
   const handleCopyIdentityField = async (value: string) => {
     try {
       await writeText(value);
@@ -277,6 +320,20 @@ export default function App() {
       }, 150);
     } catch (err: any) {
       showToast('Copy failed: ' + err.toString(), 'error');
+    }
+  };
+
+  // Identity Paste Field Flow
+  const handlePasteIdentityField = async (value: string) => {
+    try {
+      const hwnd = await invoke<number>('get_foreground_hwnd');
+      await writeText(value);
+      const win = getCurrentWindow();
+      await win.hide();
+      await invoke('paste_to_previous_window', { hwnd });
+    } catch (err: any) {
+      console.error('Auto-paste failed:', err);
+      showToast('Auto-paste failed: ' + err.toString(), 'error');
     }
   };
 
@@ -295,6 +352,24 @@ export default function App() {
       }, 150);
     } catch (err: any) {
       showToast('Copy failed: ' + err.toString(), 'error');
+    }
+  };
+
+  // Identity Paste Block Flow
+  const handlePasteIdentityBlock = async (identity: Identity) => {
+    try {
+      const hwnd = await invoke<number>('get_foreground_hwnd');
+      const block = identity.fields
+        .filter(f => f.value.trim())
+        .map(f => `${f.label}: ${f.value}`)
+        .join('\n');
+      await writeText(block);
+      const win = getCurrentWindow();
+      await win.hide();
+      await invoke('paste_to_previous_window', { hwnd });
+    } catch (err: any) {
+      console.error('Auto-paste failed:', err);
+      showToast('Auto-paste failed: ' + err.toString(), 'error');
     }
   };
 
@@ -317,7 +392,7 @@ export default function App() {
       } else {
         const identityIdx = index - filteredPrompts.length - displayHistory.length - filteredLinks.length;
         if (filteredIdentities[identityIdx]) {
-          handleCopyIdentityBlock(filteredIdentities[identityIdx]);
+          handlePasteIdentityBlock(filteredIdentities[identityIdx]);
         }
       }
     } else if (activeTab === 'texts' && filteredPrompts[index]) {
@@ -327,9 +402,9 @@ export default function App() {
     } else if (activeTab === 'links' && filteredLinks[index]) {
       handlePasteLink(filteredLinks[index]);
     } else if (activeTab === 'identity' && filteredIdentities[index]) {
-      handleCopyIdentityBlock(filteredIdentities[index]);
+      handlePasteIdentityBlock(filteredIdentities[index]);
     }
-  }, [isSearching, activeTab, filteredPrompts, displayHistory, filteredLinks, filteredIdentities, handlePastePrompt, handlePasteHistory, handlePasteLink, handleCopyIdentityBlock]);
+  }, [isSearching, activeTab, filteredPrompts, displayHistory, filteredLinks, filteredIdentities, handlePastePrompt, handlePasteHistory, handlePasteLink, handlePasteIdentityBlock]);
 
   const handleKeyboardShiftEnter = useCallback((index: number) => {
     if (isSearching) {
@@ -560,7 +635,7 @@ export default function App() {
         } else if (activeTab === 'links' && filteredLinks[selectedIndex]) {
           handlePasteLink(filteredLinks[selectedIndex]);
         } else if (activeTab === 'identity' && filteredIdentities[selectedIndex]) {
-          handleCopyIdentityBlock(filteredIdentities[selectedIndex]);
+          handlePasteIdentityBlock(filteredIdentities[selectedIndex]);
         }
       },
       enabled: (activeTab === 'texts' && filteredPrompts.length > 0) ||
@@ -599,7 +674,7 @@ export default function App() {
       action: () => { invoke('exit_app'); },
       enabled: true,
     },
-  ], [filteredPrompts, filteredLinks, filteredIdentities, selectedIndex, handleCopyPrompt, handlePastePrompt, handleCopyLink, handlePasteLink, handleCopyIdentityBlock, activeTab, searchQuery]);
+  ], [filteredPrompts, filteredLinks, filteredIdentities, selectedIndex, handleCopyPrompt, handlePastePrompt, handleCopyLink, handlePasteLink, handleCopyIdentityBlock, handlePasteIdentityBlock, activeTab, searchQuery]);
 
   // Listen for Tauri events
   useEffect(() => {
@@ -809,7 +884,9 @@ export default function App() {
                 onDeleteLink={deleteLink}
                 onToggleLinkPin={toggleLinkPin}
                 onCopyIdentityField={handleCopyIdentityField}
+                onPasteIdentityField={handlePasteIdentityField}
                 onCopyIdentityBlock={handleCopyIdentityBlock}
+                onPasteIdentityBlock={handlePasteIdentityBlock}
                 onEditIdentity={(identity) => {
                   setEditingIdentity(identity);
                   setView('edit-identity');
@@ -892,7 +969,9 @@ export default function App() {
                 }}
                 onDeleteIdentity={deleteIdentity}
                 onCopyField={handleCopyIdentityField}
+                onPasteField={handlePasteIdentityField}
                 onCopyBlock={handleCopyIdentityBlock}
+                onPasteBlock={handlePasteIdentityBlock}
                 onTogglePin={toggleIdentityPin}
                 onAddClick={() => setView('add-identity')}
               />
@@ -995,6 +1074,16 @@ export default function App() {
         <CommandPalette
           onClose={() => setView('list')}
           commands={commands}
+        />
+      )}
+
+      {variableModalPrompt && (
+        <VariableFillModal
+          promptTitle={variableModalPrompt.prompt.title}
+          templateText={variableModalPrompt.prompt.text}
+          variableNames={variableModalPrompt.customVars}
+          onConfirm={handleConfirmVariableFill}
+          onCancel={() => setVariableModalPrompt(null)}
         />
       )}
     </div>
