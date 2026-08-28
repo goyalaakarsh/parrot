@@ -11,7 +11,9 @@ interface IdentityListProps {
   onEditIdentity: (identity: Identity) => void;
   onDeleteIdentity: (id: string) => void;
   onCopyField: (value: string) => void;
+  onPasteField: (value: string) => void;
   onCopyBlock: (identity: Identity) => void;
+  onPasteBlock: (identity: Identity) => void;
   onTogglePin: (id: string) => void;
   onAddClick: () => void;
 }
@@ -25,7 +27,9 @@ export function IdentityList({
   onEditIdentity,
   onDeleteIdentity,
   onCopyField,
+  onPasteField,
   onCopyBlock,
+  onPasteBlock,
   onTogglePin,
   onAddClick,
 }: IdentityListProps) {
@@ -70,7 +74,9 @@ export function IdentityList({
             onEdit={() => onEditIdentity(identity)}
             onDelete={() => onDeleteIdentity(identity.id)}
             onCopyField={onCopyField}
+            onPasteField={onPasteField}
             onCopyBlock={() => onCopyBlock(identity)}
+            onPasteBlock={() => onPasteBlock(identity)}
             onTogglePin={() => onTogglePin(identity.id)}
           />
         ))}

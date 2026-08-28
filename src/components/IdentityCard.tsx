@@ -9,7 +9,9 @@ interface IdentityCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onCopyField: (value: string) => void;
+  onPasteField: (value: string) => void;
   onCopyBlock: () => void;
+  onPasteBlock: () => void;
   onTogglePin: () => void;
 }
 
@@ -20,7 +22,9 @@ export function IdentityCard({
   onEdit,
   onDelete,
   onCopyField,
+  onPasteField,
   onCopyBlock,
+  onPasteBlock,
   onTogglePin,
 }: IdentityCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -42,6 +46,23 @@ export function IdentityCard({
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Check for Alt+1..9 or Ctrl+1..9 hotkeys for field insertion (works even when search input is focused)
+      if ((e.altKey || e.ctrlKey) && !e.metaKey && e.key >= '1' && e.key <= '9') {
+        const fieldIndex = parseInt(e.key, 10) - 1;
+        const targetField = identity.fields[fieldIndex];
+        if (targetField && targetField.value) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.shiftKey) {
+            onCopyField(targetField.value);
+            setCopiedFieldId(targetField.id);
+          } else {
+            onPasteField(targetField.value);
+          }
+          return;
+        }
+      }
+
       if (document.activeElement?.tagName === 'TEXTAREA' || document.activeElement?.tagName === 'INPUT') {
         return;
       }
@@ -97,7 +118,7 @@ export function IdentityCard({
 
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [isSelected, isDeleting, onEdit, onDelete, onCopyBlock]);
+  }, [isSelected, isDeleting, identity.fields, onEdit, onDelete, onCopyBlock, onCopyField, onPasteField]);
 
   useEffect(() => {
     if (isDeleting && deleteRef.current) {
@@ -131,12 +152,17 @@ export function IdentityCard({
   const handleCardClick = () => {
     if (isDeleting) return;
     onSelect();
+    onPasteBlock();
   };
 
   const handleFieldClick = (e: React.MouseEvent, field: IdentityField) => {
     e.stopPropagation();
-    onCopyField(field.value);
-    setCopiedFieldId(field.id);
+    if (e.shiftKey) {
+      onCopyField(field.value);
+      setCopiedFieldId(field.id);
+    } else {
+      onPasteField(field.value);
+    }
   };
 
   return (
@@ -214,7 +240,7 @@ export function IdentityCard({
 
           {/* Fields list */}
           <div className="mt-2 space-y-1">
-            {identity.fields.slice(0, isSelected ? undefined : 3).map((field) => (
+            {identity.fields.slice(0, isSelected ? undefined : 3).map((field, fieldIdx) => (
               <button
                 key={field.id}
                 onClick={(e) => handleFieldClick(e, field)}
@@ -224,7 +250,14 @@ export function IdentityCard({
                     : 'bg-surface-hover border border-transparent hover:border-border'
                 }`}
               >
-                <span className="text-[10px] text-muted font-medium">{field.label}</span>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  {isSelected && fieldIdx < 9 && (
+                    <kbd className="shrink-0 text-[9px] px-1 py-0.5 rounded bg-surface border border-border text-accent font-mono font-semibold leading-none shadow-sm">
+                      Alt+{fieldIdx + 1}
+                    </kbd>
+                  )}
+                  <span className="text-[10px] text-muted font-medium truncate">{field.label}</span>
+                </div>
                 <span className="text-[10px] text-primary truncate max-w-[150px]">
                   {field.value || '—'}
                 </span>
