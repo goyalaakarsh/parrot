@@ -1,0 +1,24 @@
+{
+  "name": "install-parrot",
+  "version": "1.0.0",
+  "description": "Auto-installer for Parrot Desktop",
+  "main": "index.js",
+  "bin": {
+    "install-parrot": "index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "parrot",
+    "clipboard",
+    "installer",
+    "desktop"
+  ],
+  "author": "Aakarsh Goyal",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/goyalaakarsh/parrot.git"
+  }
+}

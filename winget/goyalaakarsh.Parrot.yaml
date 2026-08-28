@@ -1,0 +1,12 @@
+PackageIdentifier: goyalaakarsh.Parrot
+PackageVersion: 0.3.1
+PackageName: Parrot
+Publisher: Aakarsh Goyal
+License: MIT
+ShortDescription: Parrot - Clipboard You Love
+Installers:
+  - Architecture: x64
+    InstallerType: msi
+    InstallerUrl: https://github.com/goyalaakarsh/parrot/releases/download/v0.3.1/Parrot_0.3.1_x64_en-US.msi
+ManifestType: singleton
+ManifestVersion: 1.6.0
