@@ -10,7 +10,8 @@ export function useLinks(showToast: (msg: string, type?: 'success' | 'error') =>
     try {
       setLoading(true);
       const data = await invoke<SavedLink[]>('get_links');
-      const sorted = [...data].sort((a, b) => {
+      const list = Array.isArray(data) ? data : [];
+      const sorted = [...list].sort((a, b) => {
         if (a.pinned && b.pinned) return new Date(b.pinnedAt || b.createdAt).getTime() - new Date(a.pinnedAt || a.createdAt).getTime();
         if (a.pinned) return -1;
         if (b.pinned) return 1;

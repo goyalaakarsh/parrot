@@ -11,8 +11,9 @@ export function usePrompts(showToast: (msg: string, type?: 'success' | 'error') 
     try {
       setLoading(true);
       const data = await invoke<Prompt[]>('get_prompts');
+      const list = Array.isArray(data) ? data : [];
       // Sort: pinned first (by pinnedAt desc), then by createdAt desc
-      const sorted = [...data].sort((a, b) => {
+      const sorted = [...list].sort((a, b) => {
         if (a.pinned && b.pinned) return new Date(b.pinnedAt || b.createdAt).getTime() - new Date(a.pinnedAt || a.createdAt).getTime();
         if (a.pinned) return -1;
         if (b.pinned) return 1;

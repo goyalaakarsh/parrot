@@ -12,7 +12,7 @@ export function useHistory(showToast: (msg: string, type?: 'success' | 'error') 
   const fetchHistory = useCallback(async () => {
     try {
       const data = await invoke<HistoryEntry[]>('get_history');
-      setHistoryEntries(data);
+      setHistoryEntries(Array.isArray(data) ? data : []);
     } catch (err: any) {
       console.error('Failed to load history:', err);
     }
