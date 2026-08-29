@@ -156,7 +156,6 @@ pub fn run() {
                             // If focus shifts internally (like dragging or keypresses), the foreground window is still ours.
                             let foreground_hwnd = get_current_foreground_hwnd();
                             let our_hwnd = window_clone.hwnd().ok().map(|h| h.0 as isize).unwrap_or(0);
-                            if foreground_hwnd == our_hwnd {
                                 let _ = window_clone.set_focus();
                                 return;
                             }
