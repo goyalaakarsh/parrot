@@ -1,13 +1,20 @@
 use std::thread;
 use std::time::Duration;
+use enigo::{Enigo, Key, Keyboard, Settings, Direction};
+#[cfg(not(target_os = "windows"))]
+use enigo::Mouse;
+
+#[cfg(target_os = "windows")]
 use windows::Win32::Foundation::HWND;
+#[cfg(target_os = "windows")]
 use windows::Win32::UI::WindowsAndMessaging::{
     GetForegroundWindow, SetForegroundWindow, GetClassNameW, GetWindowThreadProcessId,
     GetGUIThreadInfo, GUITHREADINFO, GetCursorPos
 };
+#[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Gdi::ClientToScreen;
-use enigo::{Enigo, Key, Keyboard, Settings, Direction};
 
+#[cfg(target_os = "windows")]
 pub fn get_current_foreground_hwnd() -> isize {
     unsafe {
         let hwnd = GetForegroundWindow();
@@ -15,6 +22,12 @@ pub fn get_current_foreground_hwnd() -> isize {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+pub fn get_current_foreground_hwnd() -> isize {
+    0
+}
+
+#[cfg(target_os = "windows")]
 pub fn is_valid_user_window(hwnd_val: isize) -> bool {
     if hwnd_val == 0 {
         return false;
@@ -48,6 +61,12 @@ pub fn is_valid_user_window(hwnd_val: isize) -> bool {
     true
 }
 
+#[cfg(not(target_os = "windows"))]
+pub fn is_valid_user_window(hwnd_val: isize) -> bool {
+    hwnd_val != 0
+}
+
+#[cfg(target_os = "windows")]
 pub fn restore_focus_and_paste(hwnd_val: isize) -> Result<(), String> {
     unsafe {
         let hwnd = HWND(hwnd_val as *mut std::ffi::c_void);
@@ -70,6 +89,22 @@ pub fn restore_focus_and_paste(hwnd_val: isize) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(not(target_os = "windows"))]
+pub fn restore_focus_and_paste(_hwnd_val: isize) -> Result<(), String> {
+    thread::sleep(Duration::from_millis(150));
+
+    let mut enigo = Enigo::new(&Settings::default()).map_err(|e| e.to_string())?;
+
+    // Simulate Ctrl+V pasting
+    enigo.key(Key::Control, Direction::Press).ok();
+    enigo.key(Key::Unicode('v'), Direction::Press).ok();
+    enigo.key(Key::Unicode('v'), Direction::Release).ok();
+    enigo.key(Key::Control, Direction::Release).ok();
+
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
 pub fn position_window_at_caret_or_cursor(window: &tauri::WebviewWindow) {
     let mut target_point = windows::Win32::Foundation::POINT { x: 0, y: 0 };
     let mut got_caret = false;
@@ -143,5 +178,50 @@ pub fn position_window_at_caret_or_cursor(window: &tauri::WebviewWindow) {
         let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }));
     } else {
         let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x: target_point.x, y: target_point.y }));
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn position_window_at_caret_or_cursor(window: &tauri::WebviewWindow) {
+    let (mut px, mut py) = (0i32, 0i32);
+    if let Ok(enigo) = Enigo::new(&Settings::default()) {
+        if let Ok((x, y)) = enigo.location() {
+            px = x;
+            py = y;
+        }
+    }
+
+    if let Ok(Some(monitor)) = window.current_monitor() {
+        let monitor_pos = monitor.position();
+        let monitor_size = monitor.size();
+        let scale_factor = monitor.scale_factor();
+
+        let window_size = window.inner_size().unwrap_or(tauri::PhysicalSize { width: 380, height: 450 });
+
+        let mut x = px;
+        let mut y = py;
+
+        let offset_y = (20.0 * scale_factor) as i32;
+        y += offset_y;
+
+        let monitor_right = monitor_pos.x + monitor_size.width as i32;
+        if x + window_size.width as i32 > monitor_right {
+            x = monitor_right - window_size.width as i32 - (10.0 * scale_factor) as i32;
+        }
+        if x < monitor_pos.x {
+            x = monitor_pos.x + (10.0 * scale_factor) as i32;
+        }
+
+        let monitor_bottom = monitor_pos.y + monitor_size.height as i32;
+        if y + window_size.height as i32 > monitor_bottom {
+            y = py - window_size.height as i32 - (10.0 * scale_factor) as i32;
+        }
+        if y < monitor_pos.y {
+            y = monitor_pos.y + (10.0 * scale_factor) as i32;
+        }
+
+        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }));
+    } else {
+        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x: px, y: py }));
     }
 }

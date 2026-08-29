@@ -6,6 +6,7 @@ use sha2::{Sha256, Digest};
 use crate::storage::{HistoryEntry, save_history, save_image_to_disk};
 
 const MAX_ENTRIES: usize = 500;
+#[cfg(target_os = "windows")]
 const WM_CLIPBOARDUPDATE: u32 = 0x031D;
 
 pub struct HistoryState {
@@ -13,6 +14,7 @@ pub struct HistoryState {
     pub dirty: bool,
 }
 
+#[cfg(target_os = "windows")]
 struct MonitorState {
     app: AppHandle,
     clipboard: arboard::Clipboard,
@@ -20,6 +22,7 @@ struct MonitorState {
     last_image_hash: Option<String>,
 }
 
+#[cfg(target_os = "windows")]
 pub fn start_clipboard_monitoring(app: AppHandle) {
     thread::spawn(move || {
         let clipboard = match arboard::Clipboard::new() {
@@ -126,6 +129,24 @@ pub fn start_clipboard_monitoring(app: AppHandle) {
     });
 }
 
+#[cfg(not(target_os = "windows"))]
+pub fn start_clipboard_monitoring(app: AppHandle) {
+    thread::spawn(move || {
+        let mut clipboard = match arboard::Clipboard::new() {
+            Ok(c) => c,
+            Err(_) => return,
+        };
+
+        let mut last_text: Option<String> = None;
+        let mut last_image_hash: Option<String> = None;
+
+        loop {
+            thread::sleep(std::time::Duration::from_millis(300));
+            handle_clipboard_change(&mut clipboard, &mut last_text, &mut last_image_hash, &app);
+        }
+    });
+}
+
 fn handle_clipboard_change(
     clipboard: &mut arboard::Clipboard,
     last_text: &mut Option<String>,
@@ -219,6 +240,7 @@ fn hash_bytes(bytes: &[u8]) -> String {
     format!("{:x}", result)
 }
 
+#[cfg(target_os = "windows")]
 fn get_foreground_window_title() -> Option<String> {
     use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowTextW, GetWindowTextLengthW};
 
@@ -241,5 +263,10 @@ fn get_foreground_window_title() -> Option<String> {
             return Some(title);
         }
     }
+    None
+}
+
+#[cfg(not(target_os = "windows"))]
+fn get_foreground_window_title() -> Option<String> {
     None
 }
