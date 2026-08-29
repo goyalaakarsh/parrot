@@ -19,7 +19,9 @@ jobs:
             artifact_pattern: 'src-tauri/target/release/bundle/msi/*.msi'
           - os: ubuntu-latest
             args: '--bundles deb,appimage'
-            artifact_pattern: 'src-tauri/target/release/bundle/deb/*.deb src-tauri/target/release/bundle/appimage/*.AppImage'
+            artifact_pattern: |
+              src-tauri/target/release/bundle/deb/*.deb
+              src-tauri/target/release/bundle/appimage/*.AppImage
 
     steps:
       - uses: actions/checkout@v4
