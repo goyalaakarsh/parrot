@@ -153,11 +153,17 @@ pub fn run() {
                 window.on_window_event(move |event| {
                     if let WindowEvent::Focused(focused) = event {
                         if !focused {
-                            // If focus shifts internally (like dragging or keypresses), the foreground window is still ours.
-                            let foreground_hwnd = get_current_foreground_hwnd();
-                            let our_hwnd = window_clone.hwnd().ok().map(|h| h.0 as isize).unwrap_or(0);
-                                let _ = window_clone.set_focus();
-                                return;
+                            // On Windows, check if focus shifted internally (drag, keypress)
+                            // by comparing the foreground window to our own HWND.
+                            #[cfg(target_os = "windows")]
+                            {
+                                let foreground_hwnd = get_current_foreground_hwnd();
+                                if let Ok(our_hwnd) = window_clone.hwnd() {
+                                    if foreground_hwnd == our_hwnd.0 as isize {
+                                        let _ = window_clone.set_focus();
+                                        return;
+                                    }
+                                }
                             }
 
                             let mut just_shown = false;
@@ -168,7 +174,7 @@ pub fn run() {
                                     }
                                 }
                             }
-                            
+
                             if just_shown {
                                 // Re-focus to keep it on screen (avoids split-second hide)
                                 let _ = window_clone.set_focus();
